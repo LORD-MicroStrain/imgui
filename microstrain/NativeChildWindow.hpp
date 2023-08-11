@@ -8,7 +8,7 @@
         bool create(void *parent_window);
         bool destroy();
         void *get() { return m_native_window;};
-
+        void set_high_dpi_mac();
     private:
 
         bool create_windows(void *parent_window);

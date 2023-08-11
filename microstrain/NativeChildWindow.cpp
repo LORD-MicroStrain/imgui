@@ -168,14 +168,29 @@ bool NativeChildWindow::create_mac(void *parent_window)
       //objc::msg_send<id>(main_window, "addChildWindow:ordered:"_sel, m_window, NSWindowAbove);
       objc::msg_send<id>(m_parent_window, "addChildWindow:ordered:"_sel, m_native_window, NSWindowAbove);
 
-      objc::msg_send<void>(m_native_window, "orderFront:"_sel, nullptr);
+      //nsview = [nswindow contentView];
+
+      //void *view = objc::msg_send<id>(m_native_window, "contentView"_sel);
+     // objc::msg_send<id>(view, "setWantsBestResolutionOpenGLSurface:"_sel, YES);
+      
+       //objc::msg_send<id>(m_native_window, "orderFront:"_sel, nullptr);
+       objc::msg_send<id>(m_native_window, "setLevel:"_sel, 6);
+       
+      
+      //objc::msg_send<void>(m_native_window, "orderFront:"_sel, nullptr);
       
       return true;
     }
 //#else
 //    bool NativeChildWindow::create_mac(void *parent_window) {return false;};
 //#endif
+void NativeChildWindow::set_high_dpi_mac()
+{
+      void *view = objc::msg_send<id>(m_native_window, "contentView"_sel);
+      objc::msg_send<id>(view, "setWantsBestResolutionOpenGLSurface:"_sel, YES);
 
+
+}
 
 bool NativeChildWindow::destroy_windows()
 {

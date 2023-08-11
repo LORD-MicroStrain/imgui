@@ -79,6 +79,8 @@
 #include "imgui.h"
 #include "imgui_impl_sdl2.h"
 #include "microstrain/NativeChildWindow.hpp"
+#include <SDL2/SDL.h>
+#include <SDL_syswm.h>  // Must be after mip command includes due to #define Status
 
 // Clang warnings with -Weverything
 #if defined(__clang__)
@@ -853,7 +855,15 @@ static void ImGui_ImplSDL2_CreateWindow(ImGuiViewport* viewport)
 
         void *native_child_window = child_window->get();
 
+        char buffer[200];
+        sprintf(buffer, "%p", main_viewport_data->Window);
+
+        //SDL_SetHint(SDL_HINT_VIDEO_WINDOW_SHARE_PIXEL_FORMAT, buffer);
+
+        SDL_SetHint(SDL_HINT_VIDEO_FOREIGN_WINDOW_OPENGL, "1");
         vd->Window = SDL_CreateWindowFrom(native_child_window);
+        child_window->set_high_dpi_mac();
+
         vd->ChildWindow = child_window;
     }
     else
@@ -897,6 +907,7 @@ static void ImGui_ImplSDL2_DestroyWindow(ImGuiViewport* viewport)
         {
             NativeChildWindow *child_window = (NativeChildWindow *)vd->ChildWindow;
             child_window->destroy();
+            delete child_window;
         }
 
         vd->GLContext = nullptr;
