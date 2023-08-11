@@ -78,6 +78,7 @@
 
 #include "imgui.h"
 #include "imgui_impl_sdl2.h"
+#include "microstrain/NativeChildWindow.hpp"
 
 // Clang warnings with -Weverything
 #if defined(__clang__)
@@ -805,7 +806,7 @@ struct ImGui_ImplSDL2_ViewportData
     Uint32          WindowID;
     bool            WindowOwned;
     SDL_GLContext   GLContext;
-
+    NativeChildWindow *ChildWindow = nullptr;
     ImGui_ImplSDL2_ViewportData() { Window = nullptr; WindowID = 0; WindowOwned = false; GLContext = nullptr; }
     ~ImGui_ImplSDL2_ViewportData() { IM_ASSERT(Window == nullptr && GLContext == nullptr); }
 };
@@ -846,9 +847,14 @@ static void ImGui_ImplSDL2_CreateWindow(ImGuiViewport* viewport)
     //TODO: This is where we make our child class change
     if(viewport->Flags & ImGuiViewportFlags_NativeChild)
     {
-        void *native_child_window = nullptr;
+        NativeChildWindow *child_window = new NativeChildWindow();
+
+        child_window->create(main_viewport->PlatformHandleRaw);
+
+        void *native_child_window = child_window->get();
 
         vd->Window = SDL_CreateWindowFrom(native_child_window);
+        vd->ChildWindow = child_window;
     }
     else
     {
@@ -886,6 +892,13 @@ static void ImGui_ImplSDL2_DestroyWindow(ImGuiViewport* viewport)
             SDL_GL_DeleteContext(vd->GLContext);
         if (vd->Window && vd->WindowOwned)
             SDL_DestroyWindow(vd->Window);
+        
+        if(vd->ChildWindow  != nullptr)
+        {
+            NativeChildWindow *child_window = (NativeChildWindow *)vd->ChildWindow;
+            child_window->destroy();
+        }
+
         vd->GLContext = nullptr;
         vd->Window = nullptr;
         IM_DELETE(vd);
