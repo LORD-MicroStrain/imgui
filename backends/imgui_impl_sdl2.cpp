@@ -842,7 +842,19 @@ static void ImGui_ImplSDL2_CreateWindow(ImGuiViewport* viewport)
 #if SDL_HAS_ALWAYS_ON_TOP
     sdl_flags |= (viewport->Flags & ImGuiViewportFlags_TopMost) ? SDL_WINDOW_ALWAYS_ON_TOP : 0;
 #endif
-    vd->Window = SDL_CreateWindow("No Title Yet", (int)viewport->Pos.x, (int)viewport->Pos.y, (int)viewport->Size.x, (int)viewport->Size.y, sdl_flags);
+
+    //TODO: This is where we make our child class change
+    if(viewport->Flags & ImGuiViewportFlags_NativeChild)
+    {
+        void *native_child_window = nullptr;
+
+        vd->Window = SDL_CreateWindowFrom(native_child_window);
+    }
+    else
+    {
+        vd->Window = SDL_CreateWindow("No Title Yet", (int)viewport->Pos.x, (int)viewport->Pos.y, (int)viewport->Size.x, (int)viewport->Size.y, sdl_flags);
+    }
+
     vd->WindowOwned = true;
     if (use_opengl)
     {
