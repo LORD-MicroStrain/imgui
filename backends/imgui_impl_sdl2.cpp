@@ -855,10 +855,8 @@ static void ImGui_ImplSDL2_CreateWindow(ImGuiViewport* viewport)
 
         void *native_child_window = child_window->get();
 
-        char buffer[200];
+        char buffer[64] = {0};
         sprintf(buffer, "%p", main_viewport_data->Window);
-
-        //SDL_SetHint(SDL_HINT_VIDEO_WINDOW_SHARE_PIXEL_FORMAT, buffer);
 
         SDL_SetHint(SDL_HINT_VIDEO_FOREIGN_WINDOW_OPENGL, "1");
         vd->Window = SDL_CreateWindowFrom(native_child_window);

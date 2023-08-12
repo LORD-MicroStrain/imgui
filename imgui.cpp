@@ -14567,6 +14567,11 @@ void ImGui::UpdatePlatformWindows()
         if (is_new_platform_window)
         {
             IMGUI_DEBUG_LOG_VIEWPORT("[viewport] Create Platform Window %08X '%s'\n", viewport->ID, viewport->Window ? viewport->Window->Name : "n/a");
+            
+            //Microstrain Custom Edit
+            if(viewport->Window->Flags & ImGuiWindowFlags_Native_Child_Window)
+              viewport->Flags |= ImGuiViewportFlags_NativeChild;
+
             g.PlatformIO.Platform_CreateWindow(viewport);
             if (g.PlatformIO.Renderer_CreateWindow != NULL)
                 g.PlatformIO.Renderer_CreateWindow(viewport);
