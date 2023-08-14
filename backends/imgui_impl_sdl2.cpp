@@ -860,7 +860,7 @@ static void ImGui_ImplSDL2_CreateWindow(ImGuiViewport* viewport)
 
         SDL_SetHint(SDL_HINT_VIDEO_FOREIGN_WINDOW_OPENGL, "1");
         vd->Window = SDL_CreateWindowFrom(native_child_window);
-        child_window->set_high_dpi_mac();
+        child_window->enable_high_dpi();
 
         vd->ChildWindow = child_window;
     }
