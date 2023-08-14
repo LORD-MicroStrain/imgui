@@ -846,23 +846,26 @@ static void ImGui_ImplSDL2_CreateWindow(ImGuiViewport* viewport)
     sdl_flags |= (viewport->Flags & ImGuiViewportFlags_TopMost) ? SDL_WINDOW_ALWAYS_ON_TOP : 0;
 #endif
 
-    //TODO: This is where we make our child class change
+    //Microstrain Custom
     if(viewport->Flags & ImGuiViewportFlags_NativeChild)
     {
         NativeChildWindow *child_window = new NativeChildWindow();
 
-        child_window->create(main_viewport->PlatformHandleRaw);
-
-        void *native_child_window = child_window->get();
-
-        char buffer[64] = {0};
-        sprintf(buffer, "%p", main_viewport_data->Window);
-
-        SDL_SetHint(SDL_HINT_VIDEO_FOREIGN_WINDOW_OPENGL, "1");
-        vd->Window = SDL_CreateWindowFrom(native_child_window);
-        child_window->enable_high_dpi();
-
-        vd->ChildWindow = child_window;
+        if(child_window->create(main_viewport->PlatformHandleRaw, (int)(viewport->Pos.x - main_viewport->Pos.x), (int)(viewport->Pos.y - main_viewport->Pos.y), (int)viewport->Size.x, (int)viewport->Size.y))
+        {
+             void *native_child_window = child_window->get();
+             
+             char buffer[64] = {0};
+             sprintf(buffer, "%p", main_viewport_data->Window);
+             
+             SDL_SetHint(SDL_HINT_VIDEO_FOREIGN_WINDOW_OPENGL, "1");
+             //vd->Window = SDL_CreateWindowFrom(native_child_window);
+             vd->Window = SDL_CreateWindowFrom((HWND)native_child_window);
+            
+             child_window->enable_high_dpi();
+             
+             vd->ChildWindow = child_window;
+        }
     }
     else
     {
@@ -953,7 +956,21 @@ static ImVec2 ImGui_ImplSDL2_GetWindowPos(ImGuiViewport* viewport)
 static void ImGui_ImplSDL2_SetWindowPos(ImGuiViewport* viewport, ImVec2 pos)
 {
     ImGui_ImplSDL2_ViewportData* vd = (ImGui_ImplSDL2_ViewportData*)viewport->PlatformUserData;
-    SDL_SetWindowPosition(vd->Window, (int)pos.x, (int)pos.y);
+
+    int pos_x = (int)pos.x, pos_y = (int)pos.y;
+
+    //Microstrain edit (use child coordinates for child windows)
+    if(vd->ChildWindow != nullptr)
+    {
+        ImGuiViewport* main_viewport = ImGui::GetMainViewport();
+
+        pos_x = (int)(viewport->Pos.x - main_viewport->Pos.x);
+        pos_y = (int)(viewport->Pos.y - main_viewport->Pos.y);
+
+        SetWindowPos((HWND)vd->ChildWindow->get(), HWND_TOP, pos_x, pos_y, 0, 0, SWP_NOCOPYBITS | SWP_NOACTIVATE | SWP_NOSIZE);
+    }
+
+    SDL_SetWindowPosition(vd->Window, pos_x, pos_y);
 }
 
 static ImVec2 ImGui_ImplSDL2_GetWindowSize(ImGuiViewport* viewport)
@@ -967,6 +984,13 @@ static ImVec2 ImGui_ImplSDL2_GetWindowSize(ImGuiViewport* viewport)
 static void ImGui_ImplSDL2_SetWindowSize(ImGuiViewport* viewport, ImVec2 size)
 {
     ImGui_ImplSDL2_ViewportData* vd = (ImGui_ImplSDL2_ViewportData*)viewport->PlatformUserData;
+
+    //Microstrain edit (use child coordinates for child windows)
+    if (vd->ChildWindow != nullptr)
+    {
+        SetWindowPos((HWND)vd->ChildWindow->get(), HWND_TOP, 0, 0, size.x, size.y, SWP_NOCOPYBITS | SWP_NOACTIVATE | SWP_NOMOVE);
+    }
+
     SDL_SetWindowSize(vd->Window, (int)size.x, (int)size.y);
 }
 

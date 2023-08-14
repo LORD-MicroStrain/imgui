@@ -13,69 +13,47 @@
     #endif
 
     #include <windows.h>
+    #include <stdio.h>
 
-    bool NativeChildWindow::create(void *parent_window)
+    bool NativeChildWindow::create(void *parent_window, int x_pos, int y_pos, int x_size, int y_size)
     {
         m_parent_window = parent_window;
+
+        HWND window;
+
+        HINSTANCE hInstance = GetModuleHandle(nullptr);
+        HICON icon = (HICON)LoadImage(
+            hInstance, IDI_APPLICATION, IMAGE_ICON, GetSystemMetrics(SM_CXICON),
+            GetSystemMetrics(SM_CYICON), LR_DEFAULTCOLOR);
 
         WNDCLASSEXW wc;
         ZeroMemory(&wc, sizeof(WNDCLASSEX));
         wc.cbSize = sizeof(WNDCLASSEX);
         wc.hInstance = GetModuleHandle(0);
         wc.lpszClassName = L"nativeChildWindow";
-        //wc.hIcon = icon;
+        wc.hIcon = icon;
         wc.lpfnWndProc =
             (WNDPROC)(+[](HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) -> LRESULT
             {
-                auto w = (NativeChildWindow*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
-                
-                switch (msg)
-                {
-                    case WM_SIZE:
-                        //w->resize(hwnd);
-                        break;
-                    case WM_CLOSE:
-                        DestroyWindow(hwnd);
-                        break;
-                    case WM_DESTROY:
-                        //w->terminate();
-                        break;
-                        /*
-                    case WM_GETMINMAXINFO:
-                    {
-                        auto lpmmi = (LPMINMAXINFO)lp;
-                        if (w == nullptr)
-                        {
-                            return 0;
-                        }
-                        if (w->m_maxsz.x > 0 && w->m_maxsz.y > 0) {
-                            lpmmi->ptMaxSize = w->m_maxsz;
-                            lpmmi->ptMaxTrackSize = w->m_maxsz;
-                        }
-                        if (w->m_minsz.x > 0 && w->m_minsz.y > 0) {
-                            lpmmi->ptMinTrackSize = w->m_minsz;
-                        }
-                    } break;*/
-                    default:
-                        return DefWindowProcW(hwnd, msg, wp, lp);
-                }
-                return 0;
+                    return DefWindowProcW(hwnd, msg, wp, lp);
             });
 
         RegisterClassExW(&wc);
+                  
+        window = CreateWindowW(L"nativeChildWindow", L"", WS_CHILD | WS_VISIBLE,
+        CW_USEDEFAULT, CW_USEDEFAULT, x_size, y_size, (static_cast<HWND>(m_parent_window)),
+        nullptr, GetModuleHandle(0), nullptr);
 
-        m_native_window = CreateWindowW(L"nativeChildWindow", L"", WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS,
-            CW_USEDEFAULT, CW_USEDEFAULT, 640, 480, *(static_cast<HWND*>(m_parent_window)),
-            nullptr, GetModuleHandle(0), nullptr);
-
-        if (m_native_window == nullptr)
+        if (window == nullptr)
         {
             DWORD result = GetLastError();
             return false;
         }
 
-        SetWindowLongPtr((HWND)m_native_window, GWLP_USERDATA, (LONG_PTR)this);
-
+        m_native_window = static_cast<void*>(window);
+   
+        SetWindowPos((HWND)m_native_window, HWND_TOP, x_pos, y_pos, x_size, y_size, SWP_NOCOPYBITS | SWP_NOACTIVATE);
+        BringWindowToTop((HWND)m_native_window);
         ShowWindow((HWND)m_native_window, SW_SHOW);
         UpdateWindow((HWND)m_native_window);
 
@@ -138,7 +116,7 @@
 
 #if defined __linux__
 
-    bool NativeChildWindow::create(void *parent_window)
+    bool NativeChildWindow::create(void *parent_window, int x_pos, int y_pos, int x_size, int y_size)
     {
         return false;
     }
@@ -240,7 +218,7 @@ inline id operator"" _str(const char *s, std::size_t) {
   }
   */
 
- bool NativeChildWindow::create(void* parent_window)
+ bool NativeChildWindow::create(void* parent_window, int x_pos, int y_pos, int x_size, int y_size)
  {
     m_parent_window = parent_window;
 
