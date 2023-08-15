@@ -252,7 +252,7 @@ inline id operator"" _str(const char *s, std::size_t) {
       return true;
     }
 
-bool NativeChildWindow::destroy(void* parent_window)
+bool NativeChildWindow::destroy()
 {
     if (!m_native_window)
         return false;
