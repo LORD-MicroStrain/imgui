@@ -115,15 +115,37 @@
 ///
 
 #if defined __linux__
+    #include <gtk/gtk.h>
 
     bool NativeChildWindow::create(void *parent_window, int x_pos, int y_pos, int x_size, int y_size)
     {
-        return false;
+        if(parent_window == nullptr)
+          return false;
+
+        m_parent_window = parent_window;
+ 
+        auto gtk_fixed_window  = gtk_fixed_new();
+        
+        m_native_window = static_cast<void*>(gtk_fixed_window);
+
+        gtk_widget_set_has_window(static_cast<GtkWidget*>(m_native_window), FALSE);
+        gtk_container_add(GTK_CONTAINER(static_cast<GtkWidget*>(m_parent_window)), GTK_WIDGET(static_cast<GtkWidget*>(m_native_window)));
+   
+        gtk_widget_show_all(static_cast<GtkWidget*>(m_parent_window));
+ 
+        return true;
     }
 
 
     bool NativeChildWindow::destroy()
     {
+        if((m_parent_window!= nullptr) && (m_native_window != nullptr))
+        {
+            gtk_container_remove(GTK_CONTAINER(m_parent_window), GTK_WIDGET(gtk_fixed_window));
+            destroy(static_cast<GtkWidget*>(m_native_window));
+            return true;
+        }
+
         return false;
     }
 
