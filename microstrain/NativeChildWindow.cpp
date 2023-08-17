@@ -62,8 +62,10 @@
 
     bool NativeChildWindow::destroy()
     {
-        DestroyWindow((HWND)m_native_window);
+        if(m_native_window != nullptr)
+           DestroyWindow((HWND)m_native_window);
 
+        m_native_window = nullptr;
         return false;
     }
 
@@ -115,24 +117,55 @@
 ///
 
 #if defined __linux__
-    #include <gtk/gtk.h>
+    #include <X11/Xlib.h>
+    #include <X11/Xatom.h>
 
     bool NativeChildWindow::create(void *parent_window, int x_pos, int y_pos, int x_size, int y_size)
     {
         if(parent_window == nullptr)
           return false;
 
-        m_parent_window = parent_window;
- 
-        auto gtk_fixed_window  = gtk_fixed_new();
-        
-        m_native_window = static_cast<void*>(gtk_fixed_window);
+         m_parent_window = parent_window;
+         m_native_window_display = (void*)XOpenDisplay(NULL);      
+         
+         XWindowAttributes parent_xattr;
 
-        gtk_widget_set_has_window(static_cast<GtkWidget*>(m_native_window), FALSE);
-        gtk_container_add(GTK_CONTAINER(static_cast<GtkWidget*>(m_parent_window)), GTK_WIDGET(static_cast<GtkWidget*>(m_native_window)));
+         XGetWindowAttributes((Display*)m_native_window_display, (Window)m_parent_window, &parent_xattr);
+         XSetWindowAttributes xattr;
    
-        gtk_widget_show_all(static_cast<GtkWidget*>(m_parent_window));
- 
+         m_native_window = (void*)XCreateWindow((Display *)m_native_window_display, (Window)parent_window, x_pos, y_pos, x_size, y_size, 0, CopyFromParent, 
+                             InputOutput, parent_xattr.visual, 0, 0);
+
+    Atom _NET_WM_WINDOW_TYPE = XInternAtom((Display *)m_native_window_display, "_NET_WM_WINDOW_TYPE", False);
+    const char *wintype_name = NULL;
+    Atom wintype = XInternAtom((Display *)m_native_window_display, wintype_name, False);
+    XChangeProperty((Display *)m_native_window_display, (Window)m_native_window, _NET_WM_WINDOW_TYPE, ((Atom)4), 32,
+                    PropModeReplace, (unsigned char *)&wintype, 1);
+
+        Atom WM_TAKE_FOCUS = XInternAtom((Display *)m_native_window_display, "WM_TAKE_FOCUS", False);
+        Atom WM_DELETE_WINDOW = XInternAtom((Display *)m_native_window_display, "WM_DELETE_WINDOW", False);
+        Atom protocols[2] {WM_DELETE_WINDOW, WM_TAKE_FOCUS};
+        int proto_count = 2;
+
+        XSetWMProtocols((Display *)m_native_window_display, (Window)m_native_window, protocols, proto_count);
+
+
+         XSelectInput((Display *)m_native_window_display, (Window)m_native_window,
+                 (FocusChangeMask | EnterWindowMask | LeaveWindowMask |
+                 ExposureMask | ButtonPressMask | ButtonReleaseMask |
+                 PointerMotionMask | KeyPressMask | KeyReleaseMask |
+                 PropertyChangeMask | StructureNotifyMask |
+                 KeymapStateMask));
+         
+         //XSelectInput((Display *)m_native_window_display, RootWindow((Display *)m_native_window_display, (Window)m_native_window), PropertyChangeMask);
+
+         //Note, this get call has to be here for some reason or the SDL OpenGL window will fail to read the attributes (don't know why?)      
+         //XWindowAttributes child_xattr;
+         //XGetWindowAttributes((Display*)m_native_window_display, (Window)m_native_window, &child_xattr);
+         
+         
+         XFlush((Display*)m_native_window_display);
+
         return true;
     }
 
@@ -141,17 +174,17 @@
     {
         if((m_parent_window!= nullptr) && (m_native_window != nullptr))
         {
-            gtk_container_remove(GTK_CONTAINER(m_parent_window), GTK_WIDGET(gtk_fixed_window));
-            destroy(static_cast<GtkWidget*>(m_native_window));
-            return true;
+          XDestroyWindow((Display*)m_native_window_display, (Window)m_native_window);
+          XFlush((Display*)m_native_window_display);
+          return true;
         }
 
         return false;
     }
 
-    void NativeChildWindow::enable_high_dpi()
+    bool NativeChildWindow::enable_high_dpi()
     {
-
+       return true;
     }
 
 #endif

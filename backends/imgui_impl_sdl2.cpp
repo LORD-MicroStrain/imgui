@@ -82,6 +82,10 @@
 #include <SDL2/SDL.h>
 #include <SDL_syswm.h>  // Must be after mip command includes due to #define Status
 
+#if defined __linux__
+#include <X11/Xlib.h>
+#endif
+
 // Clang warnings with -Weverything
 #if defined(__clang__)
 #pragma clang diagnostic push
@@ -849,17 +853,58 @@ static void ImGui_ImplSDL2_CreateWindow(ImGuiViewport* viewport)
     //Microstrain Custom
     if(viewport->Flags & ImGuiViewportFlags_NativeChild)
     {
-        NativeChildWindow *child_window = new NativeChildWindow();
+ 
+#if defined __linux__
+    static bool main_window_initialized = false;
+    Display *main_window_display;
+    Window   main_window;
+    
+    //if(!main_window_initialized)
+    {
+    SDL_SysWMinfo info = SDL_SysWMinfo();
+    SDL_VERSION(&info.version);
+    if (SDL_GetWindowWMInfo(main_viewport_data->Window, &info) == SDL_TRUE)
+    {
+        switch (info.subsystem)
+        {
+            case SDL_SYSWM_X11:
+            {
+                main_window_display = info.info.x11.display;
+                main_window         = info.info.x11.window;
 
-        if(child_window->create(main_viewport->PlatformHandleRaw, (int)(viewport->Pos.x - main_viewport->Pos.x), (int)(viewport->Pos.y - main_viewport->Pos.y), (int)viewport->Size.x, (int)viewport->Size.y))
+                main_window_initialized = true;
+                break;
+            }
+        }
+    }
+    }
+
+#endif 
+        NativeChildWindow *child_window = new NativeChildWindow();
+        
+        float x_pos, y_pos;
+
+ #if defined __linux__
+ //  x_pos = viewport->Pos.x;
+ //  y_pos = viewport->Pos.y;
+ main_viewport->PlatformHandleRaw = (void*)main_window;
+#endif 
+//#else 
+   x_pos = viewport->Pos.x - main_viewport->Pos.x;
+   y_pos = viewport->Pos.y - main_viewport->Pos.y;
+//#endif
+
+        if(child_window->create(main_viewport->PlatformHandleRaw, (int)(x_pos), (int)(y_pos), (int)viewport->Size.x, (int)viewport->Size.y))
         {
              void *native_child_window = child_window->get();
-             
-             char buffer[64] = {0};
-             sprintf(buffer, "%p", main_viewport_data->Window);
+            
              
              SDL_SetHint(SDL_HINT_VIDEO_FOREIGN_WINDOW_OPENGL, "1");
-             //vd->Window = SDL_CreateWindowFrom((HWND)native_child_window);
+             
+             #ifdef __linux__
+           
+              #endif
+
              vd->Window = SDL_CreateWindowFrom(native_child_window);
             
              child_window->enable_high_dpi();
@@ -882,7 +927,7 @@ static void ImGui_ImplSDL2_CreateWindow(ImGuiViewport* viewport)
         SDL_GL_MakeCurrent(vd->Window, backup_context);
 
     viewport->PlatformHandle = (void*)vd->Window;
-    viewport->PlatformHandleRaw = nullptr;
+    //viewport->PlatformHandleRaw = nullptr;
     SDL_SysWMinfo info;
     SDL_VERSION(&info.version);
     if (SDL_GetWindowWMInfo(vd->Window, &info))
@@ -916,6 +961,12 @@ static void ImGui_ImplSDL2_DestroyWindow(ImGuiViewport* viewport)
         IM_DELETE(vd);
     }
     viewport->PlatformUserData = viewport->PlatformHandle = nullptr;
+
+#if defined(__linux__) 
+        //gtk_window_close(GTK_WINDOW(static_cast<GtkWindow*>(viewport->PlatformHandleRaw)));
+        //if(viewport->PlatformHandleRaw != nullptr)
+        //gtk_widget_destroy(GTK_WIDGET(static_cast<GtkWidget*>(viewport->PlatformHandleRaw)));
+#endif
 }
 
 static void ImGui_ImplSDL2_ShowWindow(ImGuiViewport* viewport)
@@ -970,9 +1021,16 @@ static void ImGui_ImplSDL2_SetWindowPos(ImGuiViewport* viewport, ImVec2 pos)
 
         SetWindowPos((HWND)vd->ChildWindow->get(), HWND_TOP, pos_x, pos_y, 0, 0, SWP_NOCOPYBITS | SWP_NOACTIVATE | SWP_NOSIZE);
     }
-#endif
+#else
+   #ifdef __linux__
+      ImGuiViewport* main_viewport = ImGui::GetMainViewport();
+     pos_x = viewport->Pos.x - main_viewport->Pos.x;
+     pos_y = viewport->Pos.y - main_viewport->Pos.y;
 
+   #endif
     SDL_SetWindowPosition(vd->Window, pos_x, pos_y);
+
+#endif
 }
 
 static ImVec2 ImGui_ImplSDL2_GetWindowSize(ImGuiViewport* viewport)
@@ -993,9 +1051,10 @@ static void ImGui_ImplSDL2_SetWindowSize(ImGuiViewport* viewport, ImVec2 size)
     {
         SetWindowPos((HWND)vd->ChildWindow->get(), HWND_TOP, 0, 0, size.x, size.y, SWP_NOCOPYBITS | SWP_NOACTIVATE | SWP_NOMOVE);
     }
-#endif
+#else
     
     SDL_SetWindowSize(vd->Window, (int)size.x, (int)size.y);
+#endif
 }
 
 static void ImGui_ImplSDL2_SetWindowTitle(ImGuiViewport* viewport, const char* title)

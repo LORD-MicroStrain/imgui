@@ -3,7 +3,6 @@
     class NativeChildWindow
     {
     public:
-
         bool create(void *parent_window, int x_pos=0, int y_pos=0, int x_size=100, int y_size=100);
         bool destroy();
         bool enable_high_dpi();
@@ -13,5 +12,9 @@
     private:
         void *m_parent_window = nullptr;
         void *m_native_window = nullptr;
+
+#ifdef __linux__
+        void *m_native_window_display = nullptr;
+#endif
     };
 
