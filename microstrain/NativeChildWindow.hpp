@@ -1,5 +1,7 @@
 #pragma once
 
+    //Note: due to the complexity of setting up an XWindow, we are leveraging SDL on Linux
+
     class NativeChildWindow
     {
     public:
@@ -13,8 +15,5 @@
         void *m_parent_window = nullptr;
         void *m_native_window = nullptr;
 
-#ifdef __linux__
-        void *m_native_window_display = nullptr;
-#endif
     };
 

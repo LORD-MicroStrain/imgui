@@ -116,55 +116,48 @@
 ////////////////////////////////////////////////////////////////////////////////
 ///
 
+//Note: due to the complexity of setting up an XWindow, we are leveraging SDL on Linux
+
 #if defined __linux__
     #include <X11/Xlib.h>
-    #include <X11/Xatom.h>
+    #include <SDL2/SDL.h>
+    #include <SDL_syswm.h>
 
     bool NativeChildWindow::create(void *parent_window, int x_pos, int y_pos, int x_size, int y_size)
     {
         if(parent_window == nullptr)
           return false;
 
-         m_parent_window = parent_window;
-         m_native_window_display = (void*)XOpenDisplay(NULL);      
+        m_parent_window = parent_window;
          
-         XWindowAttributes parent_xattr;
+        Display *parent_display;
+        Window   parent;
+  
+        SDL_SysWMinfo info = SDL_SysWMinfo();
+        SDL_VERSION(&info.version);
 
-         XGetWindowAttributes((Display*)m_native_window_display, (Window)m_parent_window, &parent_xattr);
-         XSetWindowAttributes xattr;
-   
-         m_native_window = (void*)XCreateWindow((Display *)m_native_window_display, (Window)parent_window, x_pos, y_pos, x_size, y_size, 0, CopyFromParent, 
-                             InputOutput, parent_xattr.visual, 0, 0);
+        if (SDL_GetWindowWMInfo((SDL_Window*)parent_window, &info) == SDL_TRUE)
+        {
+            parent_display = info.info.x11.display;
+            parent         = info.info.x11.window;
+        }
+        else
+          return false;
+ 
+        Uint32 sdl_flags = 0;
+        sdl_flags |= SDL_WINDOW_OPENGL;
+        sdl_flags |= SDL_GetWindowFlags((SDL_Window*)parent_window) & SDL_WINDOW_ALLOW_HIGHDPI;
+        sdl_flags |= SDL_WINDOW_HIDDEN;
+        sdl_flags |= SDL_WINDOW_BORDERLESS;  
 
-    Atom _NET_WM_WINDOW_TYPE = XInternAtom((Display *)m_native_window_display, "_NET_WM_WINDOW_TYPE", False);
-    const char *wintype_name = NULL;
-    Atom wintype = XInternAtom((Display *)m_native_window_display, wintype_name, False);
-    XChangeProperty((Display *)m_native_window_display, (Window)m_native_window, _NET_WM_WINDOW_TYPE, ((Atom)4), 32,
-                    PropModeReplace, (unsigned char *)&wintype, 1);
-
-        Atom WM_TAKE_FOCUS = XInternAtom((Display *)m_native_window_display, "WM_TAKE_FOCUS", False);
-        Atom WM_DELETE_WINDOW = XInternAtom((Display *)m_native_window_display, "WM_DELETE_WINDOW", False);
-        Atom protocols[2] {WM_DELETE_WINDOW, WM_TAKE_FOCUS};
-        int proto_count = 2;
-
-        XSetWMProtocols((Display *)m_native_window_display, (Window)m_native_window, protocols, proto_count);
-
-
-         XSelectInput((Display *)m_native_window_display, (Window)m_native_window,
-                 (FocusChangeMask | EnterWindowMask | LeaveWindowMask |
-                 ExposureMask | ButtonPressMask | ButtonReleaseMask |
-                 PointerMotionMask | KeyPressMask | KeyReleaseMask |
-                 PropertyChangeMask | StructureNotifyMask |
-                 KeymapStateMask));
-         
-         //XSelectInput((Display *)m_native_window_display, RootWindow((Display *)m_native_window_display, (Window)m_native_window), PropertyChangeMask);
-
-         //Note, this get call has to be here for some reason or the SDL OpenGL window will fail to read the attributes (don't know why?)      
-         //XWindowAttributes child_xattr;
-         //XGetWindowAttributes((Display*)m_native_window_display, (Window)m_native_window, &child_xattr);
-         
-         
-         XFlush((Display*)m_native_window_display);
+        m_native_window = (void*)SDL_CreateWindow("No Title Yet", x_pos, y_pos, x_size, y_size, sdl_flags);
+ 
+        if (SDL_GetWindowWMInfo((SDL_Window *)m_native_window, &info) == SDL_TRUE)
+        {
+            XReparentWindow(info.info.x11.display, info.info.x11.window, parent, x_pos, y_pos);             
+        }
+        else
+           return false;
 
         return true;
     }
@@ -174,8 +167,7 @@
     {
         if((m_parent_window!= nullptr) && (m_native_window != nullptr))
         {
-          XDestroyWindow((Display*)m_native_window_display, (Window)m_native_window);
-          XFlush((Display*)m_native_window_display);
+          SDL_DestroyWindow((SDL_Window*)m_native_window);
           return true;
         }
 

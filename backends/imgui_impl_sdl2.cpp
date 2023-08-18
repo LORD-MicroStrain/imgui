@@ -849,51 +849,15 @@ static void ImGui_ImplSDL2_CreateWindow(ImGuiViewport* viewport)
 #if SDL_HAS_ALWAYS_ON_TOP
     sdl_flags |= (viewport->Flags & ImGuiViewportFlags_TopMost) ? SDL_WINDOW_ALWAYS_ON_TOP : 0;
 #endif
-
+ 
     //Microstrain Custom
     if(viewport->Flags & ImGuiViewportFlags_NativeChild)
     {
- 
-#if defined __linux__
-    static bool main_window_initialized = false;
-    Display *main_window_display;
-    Window   main_window;
-    
-    //if(!main_window_initialized)
-    {
-    SDL_SysWMinfo info = SDL_SysWMinfo();
-    SDL_VERSION(&info.version);
-    if (SDL_GetWindowWMInfo(main_viewport_data->Window, &info) == SDL_TRUE)
-    {
-        switch (info.subsystem)
-        {
-            case SDL_SYSWM_X11:
-            {
-                main_window_display = info.info.x11.display;
-                main_window         = info.info.x11.window;
-
-                main_window_initialized = true;
-                break;
-            }
-        }
-    }
-    }
-
-#endif 
-        NativeChildWindow *child_window = new NativeChildWindow();
+        float x_pos = viewport->Pos.x - main_viewport->Pos.x;
+        float y_pos = viewport->Pos.y - main_viewport->Pos.y;
         
-        float x_pos, y_pos;
-
- #if defined __linux__
- //  x_pos = viewport->Pos.x;
- //  y_pos = viewport->Pos.y;
- main_viewport->PlatformHandleRaw = (void*)main_window;
-#endif 
-//#else 
-   x_pos = viewport->Pos.x - main_viewport->Pos.x;
-   y_pos = viewport->Pos.y - main_viewport->Pos.y;
-//#endif
-
+        NativeChildWindow *child_window = new NativeChildWindow;
+         
         if(child_window->create(main_viewport->PlatformHandleRaw, (int)(x_pos), (int)(y_pos), (int)viewport->Size.x, (int)viewport->Size.y))
         {
              void *native_child_window = child_window->get();
@@ -901,10 +865,6 @@ static void ImGui_ImplSDL2_CreateWindow(ImGuiViewport* viewport)
              
              SDL_SetHint(SDL_HINT_VIDEO_FOREIGN_WINDOW_OPENGL, "1");
              
-             #ifdef __linux__
-           
-              #endif
-
              vd->Window = SDL_CreateWindowFrom(native_child_window);
             
              child_window->enable_high_dpi();
@@ -912,12 +872,14 @@ static void ImGui_ImplSDL2_CreateWindow(ImGuiViewport* viewport)
              vd->ChildWindow = child_window;
         }
     }
+    //Standard window creation
     else
     {
         vd->Window = SDL_CreateWindow("No Title Yet", (int)viewport->Pos.x, (int)viewport->Pos.y, (int)viewport->Size.x, (int)viewport->Size.y, sdl_flags);
     }
-
+    
     vd->WindowOwned = true;
+    
     if (use_opengl)
     {
         vd->GLContext = SDL_GL_CreateContext(vd->Window);
@@ -927,9 +889,10 @@ static void ImGui_ImplSDL2_CreateWindow(ImGuiViewport* viewport)
         SDL_GL_MakeCurrent(vd->Window, backup_context);
 
     viewport->PlatformHandle = (void*)vd->Window;
-    //viewport->PlatformHandleRaw = nullptr;
+    
     SDL_SysWMinfo info;
     SDL_VERSION(&info.version);
+
     if (SDL_GetWindowWMInfo(vd->Window, &info))
     {
 #if defined(SDL_VIDEO_DRIVER_WINDOWS)
@@ -961,12 +924,6 @@ static void ImGui_ImplSDL2_DestroyWindow(ImGuiViewport* viewport)
         IM_DELETE(vd);
     }
     viewport->PlatformUserData = viewport->PlatformHandle = nullptr;
-
-#if defined(__linux__) 
-        //gtk_window_close(GTK_WINDOW(static_cast<GtkWindow*>(viewport->PlatformHandleRaw)));
-        //if(viewport->PlatformHandleRaw != nullptr)
-        //gtk_widget_destroy(GTK_WIDGET(static_cast<GtkWidget*>(viewport->PlatformHandleRaw)));
-#endif
 }
 
 static void ImGui_ImplSDL2_ShowWindow(ImGuiViewport* viewport)
