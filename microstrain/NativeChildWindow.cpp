@@ -176,8 +176,7 @@
         if (SDL_GetWindowWMInfo((SDL_Window *)m_native_window, &info) == SDL_TRUE)
         {
             XReparentWindow(info.info.x11.display, info.info.x11.window, parent, x_pos, y_pos);             
-            XRaiseWindow(info.info.x11.display, info.info.x11.window);
-       }
+        }
         else
            return false;
 
@@ -209,16 +208,6 @@
     void NativeChildWindow::show()
     {
         SDL_ShowWindow((SDL_Window *)m_native_window);
-
-        //Push the window to the top
-        SDL_SysWMinfo info = SDL_SysWMinfo();
-        SDL_VERSION(&info.version);
-
-        if (SDL_GetWindowWMInfo((SDL_Window*)m_native_window, &info) == SDL_TRUE)
-        {
-            XRaiseWindow(info.info.x11.display, info.info.x11.window);
-        }
-
     }
 
     void NativeChildWindow::set_size(int x_size, int y_size)
