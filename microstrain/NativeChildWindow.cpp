@@ -40,7 +40,7 @@
 
         RegisterClassExW(&wc);
                   
-        window = CreateWindowW(L"nativeChildWindow", L"", WS_CHILD | WS_VISIBLE,
+        window = CreateWindowW(L"nativeChildWindow", L"", WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS,
         CW_USEDEFAULT, CW_USEDEFAULT, x_size, y_size, (static_cast<HWND>(m_parent_window)),
         nullptr, GetModuleHandle(0), nullptr);
 
@@ -92,32 +92,40 @@
         return true;
     }
 
-
-    /*
-    void set_size(int left, int top, int width, int height, int hints) {
-        if (hints == WEBVIEW_HINT_MAX) {
-            m_maxsz.x = width;
-            m_maxsz.y = height;
-        }
-        else if (hints == WEBVIEW_HINT_MIN) {
-            m_minsz.x = width;
-            m_minsz.y = height;
-        }
-        else {
-            SetWindowPos(m_window, nullptr, left, top, width, height,
-                SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
-            resize(m_window);
-        }
-    }*/
-
-        void NativeChildWindow::hide() 
+    void NativeChildWindow::set_size(int x_size, int y_size)
     {
+        if(!m_native_window)
+         return;
 
+        SetWindowPos((HWND)m_native_window, nullptr, 0, 0, x_size, y_size,
+                SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED | SWP_NOMOVE);
+
+    }
+
+    void NativeChildWindow::set_position(int x, int y)
+    {
+        if(!m_native_window)
+         return;
+
+         SetWindowPos((HWND)m_native_window, nullptr, x, y, 0, 0,
+                SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED | SWP_NOSIZE);
+    }
+
+
+    void NativeChildWindow::hide() 
+    {
+        if(!m_native_window)
+         return;
+
+        ShowWindow((HWND)m_native_window, SW_HIDE);
     }
 
     void NativeChildWindow::show()
     {
+        if(!m_native_window)
+         return;
 
+        ShowWindow((HWND)m_native_window, SW_SHOW);
     }
 
 #endif
