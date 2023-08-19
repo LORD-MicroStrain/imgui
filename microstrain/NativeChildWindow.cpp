@@ -288,36 +288,6 @@ inline id operator"" _str(const char *s, std::size_t) {
 }
 }
 
-//static uint32_t ref_counter = 0;
-
-/*
-  void set_size(int left, int top, int width, int height, int hints) {
-    auto style = static_cast<NSWindowStyleMask>(NSWindowStyleMaskBorderless);
-
-    objc::msg_send<void>(m_window, "setStyleMask:"_sel, style);
-
-      objc::msg_send<void>(m_window, "setFrame:display:animate:"_sel,
-                           CGRectMake(left, top, width, height), YES, NO);
-  }
-
-  void show_window(bool show)
-  {
-    auto application = get_shared_application();
-    auto main_window = objc::msg_send<id>(application, "mainWindow"_sel);
-
-    if(show)
-    {
-      objc::msg_send<id>(main_window, "addChildWindow:ordered:"_sel, m_window, NSWindowAbove);
-      objc::msg_send<id>(m_window, "orderFront"_sel); 
-    }
-    else
-    {
-      objc::msg_send<id>(main_window, "removeChildWindow:"_sel, m_window);
-      objc::msg_send<id>(m_window, "orderOut:"_sel, "self");
-    }
-  }
-  */
-
  bool NativeChildWindow::create(void* parent_window, int x_pos, int y_pos, int x_size, int y_size)
  {
       m_parent_window = parent_window;
@@ -331,20 +301,9 @@ inline id operator"" _str(const char *s, std::size_t) {
           m_native_window, "initWithContentRect:styleMask:backing:defer:"_sel,
           CGRectMake(0, 0, 0, 0), style, NSBackingStoreBuffered, NO);
 
-      //auto application = get_shared_application();
-      //auto main_window = objc::msg_send<id>(application, "mainWindow"_sel);
-
       objc::msg_send<id>(m_parent_window, "addChildWindow:ordered:"_sel, m_native_window, NSWindowAbove);
-
-      //nsview = [nswindow contentView];
-
-      //void *view = objc::msg_send<id>(m_native_window, "contentView"_sel);
-     // objc::msg_send<id>(view, "setWantsBestResolutionOpenGLSurface:"_sel, YES);
-      
-       //objc::msg_send<id>(m_native_window, "orderFront:"_sel, nullptr);
-       objc::msg_send<id>(m_native_window, "setLevel:"_sel, 6);
-       
-      
+      objc::msg_send<id>(m_native_window, "setLevel:"_sel, 6);
+             
       //objc::msg_send<void>(m_native_window, "orderFront:"_sel, nullptr);
       
       return true;
@@ -376,7 +335,6 @@ bool NativeChildWindow::enable_high_dpi()
         if (!m_native_window)
            return;
 
-      //objc::msg_send<id>(m_parent_window, "removeChildWindow:"_sel, m_native_window);
       objc::msg_send<id>(m_native_window, "orderOut:"_sel, "self");
     }
 
