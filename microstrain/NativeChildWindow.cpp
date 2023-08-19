@@ -312,8 +312,7 @@ inline id operator"" _str(const char *s, std::size_t) {
 
  bool NativeChildWindow::create(void* parent_window, int x_pos, int y_pos, int x_size, int y_size)
  {
-    m_parent_window = parent_window;
-
+      m_parent_window = parent_window;
       m_native_window = objc::msg_send<id>("NSWindow"_cls, "alloc"_sel);
 
       if(!m_native_window)
@@ -327,7 +326,6 @@ inline id operator"" _str(const char *s, std::size_t) {
       //auto application = get_shared_application();
       //auto main_window = objc::msg_send<id>(application, "mainWindow"_sel);
 
-      //objc::msg_send<id>(main_window, "addChildWindow:ordered:"_sel, m_window, NSWindowAbove);
       objc::msg_send<id>(m_parent_window, "addChildWindow:ordered:"_sel, m_native_window, NSWindowAbove);
 
       //nsview = [nswindow contentView];
@@ -356,6 +354,9 @@ bool NativeChildWindow::destroy()
 
 bool NativeChildWindow::enable_high_dpi()
 {
+      if (!m_native_window)
+        return false;
+
       void *view = objc::msg_send<id>(m_native_window, "contentView"_sel);
       objc::msg_send<id>(view, "setWantsBestResolutionOpenGLSurface:"_sel, YES);
 
@@ -364,14 +365,49 @@ bool NativeChildWindow::enable_high_dpi()
 
     void NativeChildWindow::hide() 
     {
+        if (!m_native_window)
+           return;
 
+      //objc::msg_send<id>(m_parent_window, "removeChildWindow:"_sel, m_native_window);
+      objc::msg_send<id>(m_native_window, "orderOut:"_sel, "self");
     }
 
     void NativeChildWindow::show()
     {
+        if (!m_native_window)
+           return;
 
+        objc::msg_send<id>(m_parent_window, "addChildWindow:ordered:"_sel, m_native_window, NSWindowAbove);
+    
     }
 
+    void NativeChildWindow::set_size(int x_size, int y_size)
+    {
+       auto style = static_cast<NSWindowStyleMask>(NSWindowStyleMaskBorderless);
+       
+       auto frame = objc::msg_send<CGRect>(m_native_window, "frame"_sel);
+
+       frame.size.width  = x_size;
+       frame.size.height = y_size;
+
+       objc::msg_send<void>(m_native_window, "setStyleMask:"_sel, style);
+       objc::msg_send<void>(m_native_window, "setFrame:display:animate:"_sel, frame, YES, NO);
+    }
+
+    void NativeChildWindow::set_position(int x, int y)
+    {
+       auto style = static_cast<NSWindowStyleMask>(NSWindowStyleMaskBorderless);
+       
+       auto frame = objc::msg_send<CGRect>(m_native_window, "frame"_sel);
+
+       frame.origin.x = x;
+       frame.origin.y = y;
+
+       objc::msg_send<void>(m_native_window, "setStyleMask:"_sel, style);
+       objc::msg_send<void>(m_native_window, "setFrame:display:animate:"_sel, frame, YES, NO);
+    }
+
+   
 
 #endif
 
