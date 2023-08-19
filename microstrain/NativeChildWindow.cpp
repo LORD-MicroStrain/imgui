@@ -176,7 +176,7 @@
         if (SDL_GetWindowWMInfo((SDL_Window *)m_native_window, &info) == SDL_TRUE)
         {
             XReparentWindow(info.info.x11.display, info.info.x11.window, parent, x_pos, y_pos);             
-            XLowerWindow(info.info.x11.display, info.info.x11.window);
+            XRaiseWindow(info.info.x11.display, info.info.x11.window);
        }
         else
            return false;
@@ -210,13 +210,13 @@
     {
         SDL_ShowWindow((SDL_Window *)m_native_window);
 
-        //Push the window to the bottom
+        //Push the window to the top
         SDL_SysWMinfo info = SDL_SysWMinfo();
         SDL_VERSION(&info.version);
 
         if (SDL_GetWindowWMInfo((SDL_Window*)m_native_window, &info) == SDL_TRUE)
         {
-            XLowerWindow(info.info.x11.display, info.info.x11.window);
+            XRaiseWindow(info.info.x11.display, info.info.x11.window);
         }
 
     }
