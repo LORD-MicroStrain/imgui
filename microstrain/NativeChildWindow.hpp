@@ -11,6 +11,12 @@
 
         void *get() { return m_native_window;};
 
+        void hide();
+        void show();
+
+        void set_size(int x_size, int y_size);
+        void set_position(int x, int y);
+
     private:
         void *m_parent_window = nullptr;
         void *m_native_window = nullptr;

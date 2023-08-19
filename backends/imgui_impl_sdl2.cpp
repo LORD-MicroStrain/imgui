@@ -858,19 +858,39 @@ static void ImGui_ImplSDL2_CreateWindow(ImGuiViewport* viewport)
         
         NativeChildWindow *child_window = new NativeChildWindow;
          
-        if(child_window->create(main_viewport->PlatformHandleRaw, (int)(x_pos), (int)(y_pos), (int)viewport->Size.x, (int)viewport->Size.y))
+        void *parent_ptr = nullptr;
+
+#ifdef __linux__
+        parent_ptr = main_viewport->PlatformHandle;
+#else
+        parent_ptr = main_viewport->PlatformHandleRaw;
+#endif
+
+        if(child_window->create(parent_ptr, (int)(x_pos), (int)(y_pos), (int)viewport->Size.x, (int)viewport->Size.y))
         {
              void *native_child_window = child_window->get();
-            
-             
+
+#ifdef __linux__
+
+             SDL_SysWMinfo info = SDL_SysWMinfo();
+             SDL_VERSION(&info.version);
+
+             if (SDL_GetWindowWMInfo((SDL_Window*)native_child_window, &info) == SDL_TRUE)
+             {
+                 native_child_window = (void*)info.info.x11.window;
+             }
+#endif
+
              SDL_SetHint(SDL_HINT_VIDEO_FOREIGN_WINDOW_OPENGL, "1");
-             
+
              vd->Window = SDL_CreateWindowFrom(native_child_window);
             
              child_window->enable_high_dpi();
              
              vd->ChildWindow = child_window;
         }
+        else 
+          return;
     }
     //Standard window creation
     else

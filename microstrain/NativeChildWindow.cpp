@@ -109,6 +109,17 @@
             resize(m_window);
         }
     }*/
+
+        void NativeChildWindow::hide() 
+    {
+
+    }
+
+    void NativeChildWindow::show()
+    {
+
+    }
+
 #endif
 
 
@@ -146,16 +157,19 @@
  
         Uint32 sdl_flags = 0;
         sdl_flags |= SDL_WINDOW_OPENGL;
-        sdl_flags |= SDL_GetWindowFlags((SDL_Window*)parent_window) & SDL_WINDOW_ALLOW_HIGHDPI;
+        sdl_flags |= SDL_WINDOW_ALLOW_HIGHDPI;
         sdl_flags |= SDL_WINDOW_HIDDEN;
         sdl_flags |= SDL_WINDOW_BORDERLESS;  
+        sdl_flags |= SDL_WINDOW_SKIP_TASKBAR;
+        sdl_flags |= SDL_WINDOW_ALWAYS_ON_TOP;
 
         m_native_window = (void*)SDL_CreateWindow("No Title Yet", x_pos, y_pos, x_size, y_size, sdl_flags);
  
         if (SDL_GetWindowWMInfo((SDL_Window *)m_native_window, &info) == SDL_TRUE)
         {
             XReparentWindow(info.info.x11.display, info.info.x11.window, parent, x_pos, y_pos);             
-        }
+            XLowerWindow(info.info.x11.display, info.info.x11.window);
+       }
         else
            return false;
 
@@ -178,6 +192,37 @@
     {
        return true;
     }
+
+    void NativeChildWindow::hide() 
+    {
+        SDL_HideWindow((SDL_Window *)m_native_window);
+    }
+
+    void NativeChildWindow::show()
+    {
+        SDL_ShowWindow((SDL_Window *)m_native_window);
+
+        //Push the window to the bottom
+        SDL_SysWMinfo info = SDL_SysWMinfo();
+        SDL_VERSION(&info.version);
+
+        if (SDL_GetWindowWMInfo((SDL_Window*)m_native_window, &info) == SDL_TRUE)
+        {
+            XLowerWindow(info.info.x11.display, info.info.x11.window);
+        }
+
+    }
+
+    void NativeChildWindow::set_size(int x_size, int y_size)
+    {
+      SDL_SetWindowSize((SDL_Window *)m_native_window, x_size, y_size);
+    }
+    
+    void NativeChildWindow::set_position(int x, int y)
+    {
+      SDL_SetWindowPosition((SDL_Window *)m_native_window, x, y);     
+    }
+
 
 #endif
 
@@ -316,6 +361,17 @@ bool NativeChildWindow::enable_high_dpi()
 
       return true;
 }
+
+    void NativeChildWindow::hide() 
+    {
+
+    }
+
+    void NativeChildWindow::show()
+    {
+
+    }
+
 
 #endif
 
