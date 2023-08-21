@@ -875,18 +875,15 @@ static void ImGui_ImplSDL2_CreateWindow(ImGuiViewport* viewport)
              SDL_SysWMinfo info = SDL_SysWMinfo();
              SDL_VERSION(&info.version);
 
-             if (SDL_GetWindowWMInfo((SDL_Window*)native_child_window, &info) == SDL_TRUE)
-             {
-                 native_child_window = (void*)info.info.x11.window;
-             }
-#endif
+             vd->Window = (SDL_Window *)native_child_window;
+#else
 
              SDL_SetHint(SDL_HINT_VIDEO_FOREIGN_WINDOW_OPENGL, "1");
 
              vd->Window = SDL_CreateWindowFrom(native_child_window);
             
              child_window->enable_high_dpi();
-             
+#endif            
              vd->ChildWindow = child_window;
         }
         else 

@@ -170,12 +170,12 @@
         sdl_flags |= SDL_WINDOW_BORDERLESS;  
         sdl_flags |= SDL_WINDOW_SKIP_TASKBAR;
         sdl_flags |= SDL_WINDOW_ALWAYS_ON_TOP;
-
+        
         m_native_window = (void*)SDL_CreateWindow("No Title Yet", x_pos, y_pos, x_size, y_size, sdl_flags);
  
         if (SDL_GetWindowWMInfo((SDL_Window *)m_native_window, &info) == SDL_TRUE)
         {
-            XReparentWindow(info.info.x11.display, info.info.x11.window, parent, x_pos, y_pos);             
+            XReparentWindow(info.info.x11.display, info.info.x11.window, parent, x_pos, y_pos);   
         }
         else
            return false;
@@ -202,12 +202,26 @@
 
     void NativeChildWindow::hide() 
     {
-        SDL_HideWindow((SDL_Window *)m_native_window);
+        SDL_SysWMinfo info = SDL_SysWMinfo();
+        SDL_VERSION(&info.version);
+
+        if (SDL_GetWindowWMInfo((SDL_Window *)m_native_window, &info) == SDL_TRUE)
+        {
+            XUnmapWindow(info.info.x11.display, info.info.x11.window);
+        }
+        //SDL_HideWindow((SDL_Window *)m_native_window);
     }
 
     void NativeChildWindow::show()
     {
-        SDL_ShowWindow((SDL_Window *)m_native_window);
+        SDL_SysWMinfo info = SDL_SysWMinfo();
+        SDL_VERSION(&info.version);
+
+        if (SDL_GetWindowWMInfo((SDL_Window *)m_native_window, &info) == SDL_TRUE)
+        {
+            XMapWindow(info.info.x11.display, info.info.x11.window);
+        }
+        //SDL_ShowWindow((SDL_Window *)m_native_window);
     }
 
     void NativeChildWindow::set_size(int x_size, int y_size)
