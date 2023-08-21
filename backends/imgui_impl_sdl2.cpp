@@ -998,18 +998,21 @@ static void ImGui_ImplSDL2_SetWindowPos(ImGuiViewport* viewport, ImVec2 pos)
 
         SetWindowPos((HWND)vd->ChildWindow->get(), HWND_TOP, pos_x, pos_y, 0, 0, SWP_NOCOPYBITS | SWP_NOACTIVATE | SWP_NOSIZE);
     }
-#else
-   #ifdef __linux__
+#elif defined __linux__
     if(vd->ChildWindow != nullptr)
     {
       ImGuiViewport* main_viewport = ImGui::GetMainViewport();
       pos_x = viewport->Pos.x - main_viewport->Pos.x;
       pos_y = viewport->Pos.y - main_viewport->Pos.y;
+       
+      if(vd->ChildWindow)
+      {
+         vd->ChildWindow->set_position(pos_x, pos_y);
+      }
     }
 
-   #endif
+#else
     SDL_SetWindowPosition(vd->Window, pos_x, pos_y);
-
 #endif
 }
 

@@ -212,13 +212,25 @@
 
     void NativeChildWindow::set_size(int x_size, int y_size)
     {
-       SDL_SetWindowSize((SDL_Window *)m_native_window, x_size, y_size); 
+        SDL_SysWMinfo info = SDL_SysWMinfo();
+        SDL_VERSION(&info.version);
+
+        if (SDL_GetWindowWMInfo((SDL_Window *)m_native_window, &info) == SDL_TRUE)
+        {
+            XResizeWindow(info.info.x11.display, info.info.x11.window, x_size, y_size);
+        }
     }
     
     void NativeChildWindow::set_position(int x, int y)
     {
-      SDL_SetWindowPosition((SDL_Window *)m_native_window, x, y);     
-    }
+        SDL_SysWMinfo info = SDL_SysWMinfo();
+        SDL_VERSION(&info.version);
+
+        if (SDL_GetWindowWMInfo((SDL_Window *)m_native_window, &info) == SDL_TRUE)
+        {
+            XMoveWindow(info.info.x11.display, info.info.x11.window, x, y);
+        }
+   }
 
 
 #endif
