@@ -10,6 +10,12 @@
 #include "imgui.h"
 #include "imgui_stdlib.h"
 
+
+void ImGui::TextUnformatted(std::string_view text)
+{
+    ImGui::TextUnformatted(text.data(), text.data() + text.size());
+}
+
 struct InputTextCallback_UserData
 {
     std::string*            Str;
