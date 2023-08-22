@@ -885,7 +885,7 @@ static void ImGui_ImplSDL2_CreateWindow(ImGuiViewport* viewport)
 
              vd->Window = SDL_CreateWindowFrom(native_child_window);
             
-             child_window->enable_high_dpi();
+             child_window->enableHighDpi();
 //#endif            
              vd->ChildWindow = child_window;
         }
@@ -1007,7 +1007,7 @@ static void ImGui_ImplSDL2_SetWindowPos(ImGuiViewport* viewport, ImVec2 pos)
        
       if(vd->ChildWindow)
       {
-         vd->ChildWindow->set_position(pos_x, pos_y);
+         vd->ChildWindow->setSize(viewport->Size.x, viewport->Size.x, pos_x, pos_y);
       }
     }
 

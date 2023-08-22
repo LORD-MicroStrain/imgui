@@ -7,16 +7,15 @@
     public:
         bool create(void *parent_window, int x_pos=0, int y_pos=0, int x_size=100, int y_size=100);
         bool destroy();
-        bool enable_high_dpi();
+        bool enableHighDpi();
 
         void *get() { return m_native_window;};
 
         void hide();
         void show();
 
-        void set_size(int x_size, int y_size);
-        void set_position(int x, int y);
-
+        void setSize(int x, int y, int x_size, int y_size);
+        
 #ifdef __linux__
         void *get_display() { return m_parent_display;};
 #endif

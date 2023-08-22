@@ -11014,7 +11014,7 @@ bool ImGui::BeginPopup(const char* str_id, ImGuiWindowFlags flags)
     }
 
     //Microstrain Edit
-    flags |= ImGuiViewportFlags_NativeChild | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings;
+    flags |= ImGuiWindowFlags_Native_Child_Window | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings;
     ImGuiID id = g.CurrentWindow->GetID(str_id);
     return BeginPopupEx(id, flags);
 }

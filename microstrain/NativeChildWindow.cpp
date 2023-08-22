@@ -69,7 +69,7 @@
         return false;
     }
 
-    bool NativeChildWindow::enable_high_dpi()
+    bool NativeChildWindow::enableHighDpi()
     {
         /*
         auto user32 = native_library(L"user32.dll");
@@ -92,25 +92,15 @@
         return true;
     }
 
-    void NativeChildWindow::set_size(int x_size, int y_size)
+    void NativeChildWindow::setSize(int x, int y, int x_size, int y_size)
     {
         if(!m_native_window)
          return;
 
-        SetWindowPos((HWND)m_native_window, nullptr, 0, 0, x_size, y_size,
-                SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED | SWP_NOMOVE);
+        SetWindowPos((HWND)m_native_window, nullptr, x, y, x_size, y_size,
+                SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
 
     }
-
-    void NativeChildWindow::set_position(int x, int y)
-    {
-        if(!m_native_window)
-         return;
-
-         SetWindowPos((HWND)m_native_window, nullptr, x, y, 0, 0,
-                SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED | SWP_NOSIZE);
-    }
-
 
     void NativeChildWindow::hide() 
     {
@@ -194,7 +184,7 @@
         return false;
     }
 
-    bool NativeChildWindow::enable_high_dpi()
+    bool NativeChildWindow::enableHighDpi()
     {
        return true;
     }
@@ -215,21 +205,14 @@
         XMapWindow((Display*)m_parent_display, (Window)m_native_window);
     }
 
-    void NativeChildWindow::set_size(int x_size, int y_size)
+    void NativeChildWindow::setSize(int x, int y, int x_size, int y_size)
     {
         if(!m_parent_display || !m_native_window)
             return;
         
         XResizeWindow((Display*)m_parent_display, (Window)m_native_window, x_size, y_size);
-    }
-    
-    void NativeChildWindow::set_position(int x, int y)
-    {
-        if(!m_parent_display || !m_native_window)
-            return;
-
         XMoveWindow((Display*)m_parent_display, (Window)m_native_window, x, y);
-   }
+     }
 
 
 #endif
@@ -319,7 +302,7 @@ bool NativeChildWindow::destroy()
     return true;
 }
 
-bool NativeChildWindow::enable_high_dpi()
+bool NativeChildWindow::enableHighDpi()
 {
       if (!m_native_window)
         return false;
@@ -347,32 +330,14 @@ bool NativeChildWindow::enable_high_dpi()
     
     }
 
-    void NativeChildWindow::set_size(int x_size, int y_size)
+    void NativeChildWindow::setSize(int x, int y, int x_size, int y_size)
     {
        auto style = static_cast<NSWindowStyleMask>(NSWindowStyleMaskBorderless);
-       
-       auto frame = objc::msg_send<CGRect>(m_native_window, "frame"_sel);
-
-       frame.size.width  = x_size;
-       frame.size.height = y_size;
-
+        
        objc::msg_send<void>(m_native_window, "setStyleMask:"_sel, style);
-       objc::msg_send<void>(m_native_window, "setFrame:display:animate:"_sel, frame, YES, NO);
+       objc::msg_send<void>(m_native_window, "setFrame:display:animate:"_sel,
+                           CGRectMake(x, y, x_size, y_size), YES, NO);
     }
-
-    void NativeChildWindow::set_position(int x, int y)
-    {
-       auto style = static_cast<NSWindowStyleMask>(NSWindowStyleMaskBorderless);
-       
-       auto frame = objc::msg_send<CGRect>(m_native_window, "frame"_sel);
-
-       frame.origin.x = x;
-       frame.origin.y = y;
-
-       objc::msg_send<void>(m_native_window, "setStyleMask:"_sel, style);
-       objc::msg_send<void>(m_native_window, "setFrame:display:animate:"_sel, frame, YES, NO);
-    }
-
    
 
 #endif
