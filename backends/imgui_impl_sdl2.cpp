@@ -1007,7 +1007,7 @@ static void ImGui_ImplSDL2_SetWindowPos(ImGuiViewport* viewport, ImVec2 pos)
        
       if(vd->ChildWindow)
       {
-         vd->ChildWindow->setSize(viewport->Size.x, viewport->Size.x, pos_x, pos_y);
+         vd->ChildWindow->setSize(pos_x, pos_y, viewport->Size.x, viewport->Size.y);
       }
     }
 
