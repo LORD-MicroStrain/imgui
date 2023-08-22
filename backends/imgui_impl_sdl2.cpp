@@ -879,7 +879,7 @@ static void ImGui_ImplSDL2_CreateWindow(ImGuiViewport* viewport)
 //#else
              char address[100];
 
-             sprintf(address, "%p", (SDL_Window*)parent_ptr);
+             sprintf(address, "%p", (SDL_Window*)main_viewport->PlatformHandle);
              SDL_SetHint(SDL_HINT_VIDEO_WINDOW_SHARE_PIXEL_FORMAT, address);
              SDL_SetHint(SDL_HINT_VIDEO_FOREIGN_WINDOW_OPENGL, "1");
 
