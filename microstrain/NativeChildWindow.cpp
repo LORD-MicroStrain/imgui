@@ -141,6 +141,9 @@
     #include <X11/Xlib.h>
     #include <SDL2/SDL.h>
     #include <SDL_syswm.h>
+    //#include "SDL_internal.h"
+    //#include "SDL2/src/ase-2.26.5-fdc15bb8fb.clean/src/video/x11/SDL_x11video.h"
+    //#include "SDL_x11video.h"
 
     bool NativeChildWindow::create(void *parent_window, int x_pos, int y_pos, int x_size, int y_size)
     {
@@ -162,23 +165,20 @@
         }
         else
           return false;
- 
-        Uint32 sdl_flags = 0;
-        sdl_flags |= SDL_WINDOW_OPENGL;
-        sdl_flags |= SDL_WINDOW_ALLOW_HIGHDPI;
-        sdl_flags |= SDL_WINDOW_HIDDEN;
-        sdl_flags |= SDL_WINDOW_BORDERLESS;  
-        sdl_flags |= SDL_WINDOW_SKIP_TASKBAR;
-        sdl_flags |= SDL_WINDOW_ALWAYS_ON_TOP;
-        
-        m_native_window = (void*)SDL_CreateWindow("No Title Yet", x_pos, y_pos, x_size, y_size, sdl_flags);
- 
-        if (SDL_GetWindowWMInfo((SDL_Window *)m_native_window, &info) == SDL_TRUE)
-        {
-            XReparentWindow(info.info.x11.display, info.info.x11.window, parent, x_pos, y_pos);   
-        }
-        else
-           return false;
+
+        //Try native X11 window
+        m_native_window = (void*)XCreateWindow(parent_display, parent, x_pos, y_pos, x_size, y_size, 0, CopyFromParent, 
+                       CopyFromParent, CopyFromParent, 0, 0);
+
+        XSelectInput(parent_display, (Window)m_native_window,
+                 (FocusChangeMask | EnterWindowMask | LeaveWindowMask |
+                 ExposureMask | ButtonPressMask | ButtonReleaseMask |
+                 PointerMotionMask | KeyPressMask | KeyReleaseMask |
+                 PropertyChangeMask | StructureNotifyMask |
+                 KeymapStateMask));
+
+        XFlush(parent_display);
+        m_parent_display = (void*)parent_display;
 
         return true;
     }
@@ -186,11 +186,10 @@
 
     bool NativeChildWindow::destroy()
     {
-        if((m_parent_window!= nullptr) && (m_native_window != nullptr))
-        {
-          SDL_DestroyWindow((SDL_Window*)m_native_window);
-          return true;
-        }
+        if(!m_parent_display || !m_native_window)
+            return false;
+
+        XDestroyWindow((Display*)m_parent_display, (Window)m_native_window);
 
         return false;
     }
@@ -202,48 +201,34 @@
 
     void NativeChildWindow::hide() 
     {
-        SDL_SysWMinfo info = SDL_SysWMinfo();
-        SDL_VERSION(&info.version);
+        if(!m_parent_display || !m_native_window)
+            return;
 
-        if (SDL_GetWindowWMInfo((SDL_Window *)m_native_window, &info) == SDL_TRUE)
-        {
-            XUnmapWindow(info.info.x11.display, info.info.x11.window);
-        }
-        //SDL_HideWindow((SDL_Window *)m_native_window);
-    }
+        XUnmapWindow((Display*)m_parent_display, (Window)m_native_window);
+     }
 
     void NativeChildWindow::show()
     {
-        SDL_SysWMinfo info = SDL_SysWMinfo();
-        SDL_VERSION(&info.version);
-
-        if (SDL_GetWindowWMInfo((SDL_Window *)m_native_window, &info) == SDL_TRUE)
-        {
-            XMapWindow(info.info.x11.display, info.info.x11.window);
-        }
-        //SDL_ShowWindow((SDL_Window *)m_native_window);
+        if(!m_parent_display || !m_native_window)
+            return;
+        
+        XMapWindow((Display*)m_parent_display, (Window)m_native_window);
     }
 
     void NativeChildWindow::set_size(int x_size, int y_size)
     {
-        SDL_SysWMinfo info = SDL_SysWMinfo();
-        SDL_VERSION(&info.version);
-
-        if (SDL_GetWindowWMInfo((SDL_Window *)m_native_window, &info) == SDL_TRUE)
-        {
-            XResizeWindow(info.info.x11.display, info.info.x11.window, x_size, y_size);
-        }
+        if(!m_parent_display || !m_native_window)
+            return;
+        
+        XResizeWindow((Display*)m_parent_display, (Window)m_native_window, x_size, y_size);
     }
     
     void NativeChildWindow::set_position(int x, int y)
     {
-        SDL_SysWMinfo info = SDL_SysWMinfo();
-        SDL_VERSION(&info.version);
+        if(!m_parent_display || !m_native_window)
+            return;
 
-        if (SDL_GetWindowWMInfo((SDL_Window *)m_native_window, &info) == SDL_TRUE)
-        {
-            XMoveWindow(info.info.x11.display, info.info.x11.window, x, y);
-        }
+        XMoveWindow((Display*)m_parent_display, (Window)m_native_window, x, y);
    }
 
 

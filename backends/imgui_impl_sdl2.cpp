@@ -870,20 +870,23 @@ static void ImGui_ImplSDL2_CreateWindow(ImGuiViewport* viewport)
         {
              void *native_child_window = child_window->get();
 
-#ifdef __linux__
+//#ifdef __linux__
 
-             SDL_SysWMinfo info = SDL_SysWMinfo();
-             SDL_VERSION(&info.version);
+             //SDL_SysWMinfo info = SDL_SysWMinfo();
+             //SDL_VERSION(&info.version);
 
-             vd->Window = (SDL_Window *)native_child_window;
-#else
+             //vd->Window = (SDL_Window *)native_child_window;
+//#else
+             char address[100];
 
+             sprintf(address, "%p", (SDL_Window*)parent_ptr);
+             SDL_SetHint(SDL_HINT_VIDEO_WINDOW_SHARE_PIXEL_FORMAT, address);
              SDL_SetHint(SDL_HINT_VIDEO_FOREIGN_WINDOW_OPENGL, "1");
 
              vd->Window = SDL_CreateWindowFrom(native_child_window);
             
              child_window->enable_high_dpi();
-#endif            
+//#endif            
              vd->ChildWindow = child_window;
         }
         else 

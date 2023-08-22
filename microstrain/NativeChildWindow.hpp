@@ -17,9 +17,16 @@
         void set_size(int x_size, int y_size);
         void set_position(int x, int y);
 
+#ifdef __linux__
+        void *get_display() { return m_parent_display;};
+#endif
+
     private:
         void *m_parent_window = nullptr;
         void *m_native_window = nullptr;
 
+#ifdef __linux__
+        void *m_parent_display = nullptr;
+#endif
     };
 
