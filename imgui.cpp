@@ -5870,7 +5870,7 @@ static ImVec2 CalcWindowAutoFitSize(ImGuiWindow* window, const ImVec2& size_cont
     ImVec2 size_desired = size_contents + size_pad + ImVec2(decoration_w_without_scrollbars, decoration_h_without_scrollbars);
 
     //Microstrain custom!
-    if ((window->Flags & ImGuiWindowFlags_Tooltip) || (window->Flags & ImGuiWindowFlags_Always_New_Window))
+    if ((window->Flags & ImGuiWindowFlags_Tooltip) || (window->Flags & ImGuiWindowFlags_Native_Child_Window))
     {
         // Tooltip always resize
         return size_desired;
@@ -6871,11 +6871,16 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
         // Late create viewport if we don't fit within our current host viewport.
         //Microstrain custom!
         if (window->ViewportAllowPlatformMonitorExtend >= 0 && !window->ViewportOwned && !(window->Viewport->Flags & ImGuiViewportFlags_IsMinimized))
-            if (!window->Viewport->GetMainRect().Contains(window->Rect()) || (flags & ImGuiWindowFlags_Always_New_Window))
+            if (!window->Viewport->GetMainRect().Contains(window->Rect()) || (flags & ImGuiWindowFlags_Native_Child_Window))
             {
+                ImGuiViewportFlags viewport_flags = ImGuiViewportFlags_NoFocusOnAppearing;
+
+                if(flags & ImGuiWindowFlags_Native_Child_Window)
+                  viewport_flags |= ImGuiViewportFlags_NativeChild;
+
                 // This is based on the assumption that the DPI will be known ahead (same as the DPI of the selection done in UpdateSelectWindowViewport)
                 //ImGuiViewport* old_viewport = window->Viewport;
-                window->Viewport = AddUpdateViewport(window, window->ID, window->Pos, window->Size, ImGuiViewportFlags_NoFocusOnAppearing);
+                window->Viewport = AddUpdateViewport(window, window->ID, window->Pos, window->Size, viewport_flags);
 
                 // FIXME-DPI
                 //IM_ASSERT(old_viewport->DpiScale == window->Viewport->DpiScale); // FIXME-DPI: Something went wrong
@@ -10698,7 +10703,7 @@ bool ImGui::BeginTooltipEx(ImGuiTooltipFlags tooltip_flags, ImGuiWindowFlags ext
                 ImFormatString(window_name, IM_ARRAYSIZE(window_name), "##Tooltip_%02d", ++g.TooltipOverrideCount);
             }
     //Microstrain custom!
-    ImGuiWindowFlags flags = ImGuiWindowFlags_Always_New_Window | ImGuiWindowFlags_Tooltip | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDocking;
+    ImGuiWindowFlags flags = ImGuiWindowFlags_Native_Child_Window | ImGuiWindowFlags_Tooltip | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDocking;
     Begin(window_name, NULL, flags | extra_window_flags);
     // 2023-03-09: Added bool return value to the API, but currently always returning true.
     // If this ever returns false we need to update BeginDragDropSource() accordingly.
@@ -11007,7 +11012,9 @@ bool ImGui::BeginPopup(const char* str_id, ImGuiWindowFlags flags)
         g.NextWindowData.ClearFlags(); // We behave like Begin() and need to consume those values
         return false;
     }
-    flags |= ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings;
+
+    //Microstrain Edit
+    flags |= ImGuiWindowFlags_Native_Child_Window | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings;
     ImGuiID id = g.CurrentWindow->GetID(str_id);
     return BeginPopupEx(id, flags);
 }
@@ -14300,6 +14307,12 @@ static void ImGui::WindowSelectViewport(ImGuiWindow* window)
     ImGuiWindowFlags flags = window->Flags;
     window->ViewportAllowPlatformMonitorExtend = -1;
 
+    ImGuiViewportFlags viewport_flags = ImGuiViewportFlags_None;
+
+    if(flags & ImGuiWindowFlags_Native_Child_Window)
+        viewport_flags |= ImGuiViewportFlags_NativeChild;
+
+
     // Restore main viewport if multi-viewport is not supported by the backend
     ImGuiViewportP* main_viewport = (ImGuiViewportP*)(void*)GetMainViewport();
     if (!(g.ConfigFlagsCurrFrame & ImGuiConfigFlags_ViewportsEnable))
@@ -14327,9 +14340,11 @@ static void ImGui::WindowSelectViewport(ImGuiWindow* window)
         {
             window->Viewport = (ImGuiViewportP*)FindViewportByID(window->ViewportId);
             if (window->Viewport == NULL && window->ViewportPos.x != FLT_MAX && window->ViewportPos.y != FLT_MAX)
-                window->Viewport = AddUpdateViewport(window, window->ID, window->ViewportPos, window->Size, ImGuiViewportFlags_None);
+                window->Viewport = AddUpdateViewport(window, window->ID, window->ViewportPos, window->Size, viewport_flags);
         }
     }
+
+
 
     bool lock_viewport = false;
     if (g.NextWindowData.Flags & ImGuiNextWindowDataFlags_HasViewport)
@@ -14357,12 +14372,12 @@ static void ImGui::WindowSelectViewport(ImGuiWindow* window)
     }
     else if (GetWindowAlwaysWantOwnViewport(window))
     {
-        window->Viewport = AddUpdateViewport(window, window->ID, window->Pos, window->Size, ImGuiViewportFlags_None);
+        window->Viewport = AddUpdateViewport(window, window->ID, window->Pos, window->Size, viewport_flags);
     }
     else if (g.MovingWindow && g.MovingWindow->RootWindowDockTree == window && IsMousePosValid())
     {
         if (window->Viewport != NULL && window->Viewport->Window == window)
-            window->Viewport = AddUpdateViewport(window, window->ID, window->Pos, window->Size, ImGuiViewportFlags_None);
+            window->Viewport = AddUpdateViewport(window, window->ID, window->Pos, window->Size, viewport_flags);
     }
     else
     {
@@ -14377,7 +14392,7 @@ static void ImGui::WindowSelectViewport(ImGuiWindow* window)
     // Fallback: merge in default viewport if z-order matches, otherwise create a new viewport
     if (window->Viewport == NULL)
         if (!UpdateTryMergeWindowIntoHostViewport(window, main_viewport))
-            window->Viewport = AddUpdateViewport(window, window->ID, window->Pos, window->Size, ImGuiViewportFlags_None);
+            window->Viewport = AddUpdateViewport(window, window->ID, window->Pos, window->Size, viewport_flags);
 
     // Mark window as allowed to protrude outside of its viewport and into the current monitor
     if (!lock_viewport)
@@ -14409,7 +14424,7 @@ static void ImGui::WindowSelectViewport(ImGuiWindow* window)
             else if (!UpdateTryMergeWindowIntoHostViewports(window)) // Merge?
             {
                 // New viewport
-                window->Viewport = AddUpdateViewport(window, window->ID, window->Pos, window->Size, ImGuiViewportFlags_NoFocusOnAppearing);
+                window->Viewport = AddUpdateViewport(window, window->ID, window->Pos, window->Size, viewport_flags | ImGuiViewportFlags_NoFocusOnAppearing);
             }
         }
         else if (window->ViewportAllowPlatformMonitorExtend < 0 && (flags & ImGuiWindowFlags_ChildWindow) == 0)
@@ -14472,8 +14487,8 @@ void ImGui::WindowSyncOwnedViewport(ImGuiWindow* window, ImGuiWindow* parent_win
     const bool is_modal = (window_flags & ImGuiWindowFlags_Modal) != 0;
 
     //Microstrain custom!
-    const bool is_short_lived_floating_window = (window_flags & (ImGuiWindowFlags_ChildMenu | ImGuiWindowFlags_Tooltip | ImGuiWindowFlags_Popup | ImGuiWindowFlags_Always_New_Window)) != 0;
-    if ((window_flags & ImGuiWindowFlags_Tooltip) || (window_flags & ImGuiWindowFlags_Always_New_Window))
+    const bool is_short_lived_floating_window = (window_flags & (ImGuiWindowFlags_ChildMenu | ImGuiWindowFlags_Tooltip | ImGuiWindowFlags_Popup | ImGuiWindowFlags_Native_Child_Window)) != 0;
+    if ((window_flags & ImGuiWindowFlags_Tooltip) || (window_flags & ImGuiWindowFlags_Native_Child_Window))
         viewport_flags |= ImGuiViewportFlags_TopMost;
     if ((g.IO.ConfigViewportsNoTaskBarIcon || is_short_lived_floating_window) && !is_modal)
         viewport_flags |= ImGuiViewportFlags_NoTaskBarIcon;
@@ -14554,6 +14569,11 @@ void ImGui::UpdatePlatformWindows()
         if (is_new_platform_window)
         {
             IMGUI_DEBUG_LOG_VIEWPORT("[viewport] Create Platform Window %08X '%s'\n", viewport->ID, viewport->Window ? viewport->Window->Name : "n/a");
+            
+            //Microstrain Custom Edit
+            if(viewport->Window->Flags & ImGuiWindowFlags_Native_Child_Window)
+              viewport->Flags |= ImGuiViewportFlags_NativeChild;
+
             g.PlatformIO.Platform_CreateWindow(viewport);
             if (g.PlatformIO.Renderer_CreateWindow != NULL)
                 g.PlatformIO.Renderer_CreateWindow(viewport);
