@@ -35,7 +35,17 @@
         wc.lpfnWndProc =
             (WNDPROC)(+[](HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) -> LRESULT
             {
-                    return DefWindowProcW(hwnd, msg, wp, lp);
+                    switch(msg)
+                    {
+                    //Stop the mouse wheel event from propagating to the parent window!
+                    case WM_MOUSEWHEEL:
+                    {
+                    }break;
+
+                    default: return DefWindowProcW(hwnd, msg, wp, lp);
+                    }
+                   
+                  return 0;
             });
 
         RegisterClassExW(&wc);

@@ -310,8 +310,6 @@ bool ImGui_ImplSDL2_ProcessEvent(const SDL_Event* event)
     ImGuiIO& io = ImGui::GetIO();
     ImGui_ImplSDL2_Data* bd = ImGui_ImplSDL2_GetBackendData();
 
-    //printf("Event %i in window %i\n", event->type, event->window.windowID);
-
     switch (event->type)
     {
         case SDL_MOUSEMOTION:
@@ -326,7 +324,6 @@ bool ImGui_ImplSDL2_ProcessEvent(const SDL_Event* event)
             }
             io.AddMouseSourceEvent(event->motion.which == SDL_TOUCH_MOUSEID ? ImGuiMouseSource_TouchScreen : ImGuiMouseSource_Mouse);
             io.AddMousePosEvent(mouse_pos.x, mouse_pos.y);
-            //printf("Mouse Move event in window %i\n", event->window.windowID);
             return true;
         }
         case SDL_MOUSEWHEEL:
@@ -342,7 +339,6 @@ bool ImGui_ImplSDL2_ProcessEvent(const SDL_Event* event)
 #ifdef __EMSCRIPTEN__
             wheel_x /= 100.0f;
 #endif
-            printf("Mouse Wheel event in window %i\n", event->window.windowID);
             io.AddMouseSourceEvent(event->wheel.which == SDL_TOUCH_MOUSEID ? ImGuiMouseSource_TouchScreen : ImGuiMouseSource_Mouse);
             io.AddMouseWheelEvent(wheel_x, wheel_y);
             return true;
@@ -350,7 +346,6 @@ bool ImGui_ImplSDL2_ProcessEvent(const SDL_Event* event)
         case SDL_MOUSEBUTTONDOWN:
         case SDL_MOUSEBUTTONUP:
         {
-            printf("Mouse Button event in window %i\n", event->window.windowID);
             int mouse_button = -1;
             if (event->button.button == SDL_BUTTON_LEFT) { mouse_button = 0; }
             if (event->button.button == SDL_BUTTON_RIGHT) { mouse_button = 1; }
@@ -366,14 +361,12 @@ bool ImGui_ImplSDL2_ProcessEvent(const SDL_Event* event)
         }
         case SDL_TEXTINPUT:
         {
-            printf("Text Input event in window %i\n", event->window.windowID);
             io.AddInputCharactersUTF8(event->text.text);
             return true;
         }
         case SDL_KEYDOWN:
         case SDL_KEYUP:
         {
-            printf("Key event in window %i\n", event->window.windowID);
             ImGui_ImplSDL2_UpdateKeyModifiers((SDL_Keymod)event->key.keysym.mod);
             ImGuiKey key = ImGui_ImplSDL2_KeycodeToImGuiKey(event->key.keysym.sym);
             io.AddKeyEvent(key, (event->type == SDL_KEYDOWN));
@@ -385,7 +378,6 @@ bool ImGui_ImplSDL2_ProcessEvent(const SDL_Event* event)
         {
             // 2.0.26 has SDL_DISPLAYEVENT_CONNECTED/SDL_DISPLAYEVENT_DISCONNECTED/SDL_DISPLAYEVENT_ORIENTATION,
             // so change of DPI/Scaling are not reflected in this event. (SDL3 has it)
-            printf("Display event in window %i\n", event->window.windowID);
             bd->WantUpdateMonitors = true;
             return true;
         }
@@ -401,24 +393,19 @@ bool ImGui_ImplSDL2_ProcessEvent(const SDL_Event* event)
             Uint8 window_event = event->window.event;
             if (window_event == SDL_WINDOWEVENT_ENTER)
             {
-                printf("Window %i entered\n", event->window.windowID);
                 bd->MouseWindowID = event->window.windowID;
                 bd->PendingMouseLeaveFrame = 0;
             }
             if (window_event == SDL_WINDOWEVENT_LEAVE)
             {
                 bd->PendingMouseLeaveFrame = ImGui::GetFrameCount() + 1;
-                printf("Window leave event in window %i\n", event->window.windowID);
-
             }
             if (window_event == SDL_WINDOWEVENT_FOCUS_GAINED)
             {
-                printf("Window %i focus gained\n", event->window.windowID);
                 io.AddFocusEvent(true);
             }
             else if (window_event == SDL_WINDOWEVENT_FOCUS_LOST)
             {
-                printf("Window %i focus lost\n", event->window.windowID);
                 io.AddFocusEvent(false);
             }
             if (window_event == SDL_WINDOWEVENT_CLOSE || window_event == SDL_WINDOWEVENT_MOVED || window_event == SDL_WINDOWEVENT_RESIZED)
@@ -427,17 +414,14 @@ bool ImGui_ImplSDL2_ProcessEvent(const SDL_Event* event)
                 {
                     if (window_event == SDL_WINDOWEVENT_CLOSE)
                     {
-                        printf("Close window event in window %i\n", event->window.windowID);
                         viewport->PlatformRequestClose = true;
                     }
                     if (window_event == SDL_WINDOWEVENT_MOVED)
                     {
-                        printf("Move event in window %i\n", event->window.windowID);
                         viewport->PlatformRequestMove = true;
                     }
                     if (window_event == SDL_WINDOWEVENT_RESIZED)
                     {
-                        printf("Resize window event in window %i\n", event->window.windowID);
                         viewport->PlatformRequestResize = true;
                     }
                     return true;
@@ -448,8 +432,6 @@ bool ImGui_ImplSDL2_ProcessEvent(const SDL_Event* event)
         }
         default:
         {
-            printf("Unhandled Event %i in window %i\n", event->type, event->window.windowID);
-
         }break;
     }
     return false;
