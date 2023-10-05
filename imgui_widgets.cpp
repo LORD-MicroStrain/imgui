@@ -1784,6 +1784,8 @@ bool ImGui::BeginComboPopup(ImGuiID popup_id, const ImRect& bb, ImGuiComboFlags 
             constraint_min.x = w;
         if ((g.NextWindowData.Flags & ImGuiNextWindowDataFlags_HasSize) == 0 || g.NextWindowData.SizeVal.y <= 0.0f)
             constraint_max.y = CalcMaxPopupHeightFromItemCount(popup_max_height_in_items);
+        if (flags & ImGuiComboFlags_InputText)
+            constraint_max.y += bb.GetHeight();
         SetNextWindowSizeConstraints(constraint_min, constraint_max);
     }
 
@@ -1808,9 +1810,16 @@ bool ImGui::BeginComboPopup(ImGuiID popup_id, const ImRect& bb, ImGuiComboFlags 
     // We don't use BeginPopupEx() solely because we have a custom name string, which we could make an argument to BeginPopupEx()
     //Microstrain Edit
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_Native_Child_Window | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_Popup | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoMove;
-    PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(g.Style.FramePadding.x, g.Style.WindowPadding.y)); // Horizontally align ourselves with the framed text
+
+    if (flags & ImGuiComboFlags_InputText)
+    {
+        PushStyleVar(ImGuiStyleVar_PopupBorderSize, 0.0f);              // The child window only needs a border
+        PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));  // Remove padding since the child window will replace the full popup
+    }
+    else
+        PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(g.Style.FramePadding.x, g.Style.WindowPadding.y)); // Horizontally align ourselves with the framed text
     bool ret = Begin(name, NULL, window_flags);
-    PopStyleVar();
+    PopStyleVar(flags & ImGuiComboFlags_InputText ? 2 : 1);
     if (!ret)
     {
         EndPopup();
@@ -1823,6 +1832,210 @@ bool ImGui::BeginComboPopup(ImGuiID popup_id, const ImRect& bb, ImGuiComboFlags 
 void ImGui::EndCombo()
 {
     EndPopup();
+}
+
+bool ImGui::BeginComboInputText(const char* label, char* buffer, size_t buffer_size, bool* buffer_changed, ImGuiComboFlags combo_flags, ImGuiInputTextFlags input_flags, ImGuiInputTextCallback callback, void* user_data)
+{
+    ImGuiContext& g = *GImGui;
+    ImGuiWindow* window = GetCurrentWindow();
+
+    ImGuiNextWindowDataFlags backup_next_window_data_flags = g.NextWindowData.Flags;
+    g.NextWindowData.ClearFlags(); // We behave like Begin() and need to consume those values
+    if (window->SkipItems)
+        return false;
+
+    const ImGuiStyle& style = g.Style;
+    const ImGuiID id = window->GetID(label);
+    IM_ASSERT((combo_flags & (ImGuiComboFlags_NoArrowButton | ImGuiComboFlags_NoPreview)) != (ImGuiComboFlags_NoArrowButton | ImGuiComboFlags_NoPreview)); // Can't use both flags together
+
+    const float arrow_size = (combo_flags & ImGuiComboFlags_NoArrowButton) ? 0.0f : GetFrameHeight();
+    const ImVec2 label_size = CalcTextSize(label, NULL, true);
+    const float w = (combo_flags & ImGuiComboFlags_NoPreview) ? arrow_size : CalcItemWidth();
+    const ImRect bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w, label_size.y + style.FramePadding.y * 2.0f));
+    const ImRect total_bb(bb.Min, bb.Max + ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 0.0f));
+    ItemSize(total_bb, style.FramePadding.y);
+    if (!ItemAdd(total_bb, id, &bb))
+        return false;
+
+    // Open on click
+    bool hovered, held;
+    bool pressed = ButtonBehavior(bb, id, &hovered, &held);
+
+    ImRect input_text_rect = ImRect(bb.Min, ImVec2(bb.Max.x - arrow_size, bb.Max.y));
+
+    // Mouse hovering input text section
+    if (hovered && IsMouseHoveringRect(input_text_rect.Min, input_text_rect.Max))
+        SetMouseCursor(ImGuiMouseCursor_TextInput);
+
+    const ImGuiID popup_id = ImHashStr("##ComboPopup", 0, id);
+    bool popup_open = IsPopupOpen(popup_id, ImGuiPopupFlags_None);
+    if (pressed && !popup_open)
+    {
+        OpenPopupEx(popup_id, ImGuiPopupFlags_None);
+        popup_open = true;
+    }
+
+    // Render shape
+    const ImU32 frame_col = GetColorU32(hovered ? ImGuiCol_FrameBgHovered : ImGuiCol_FrameBg);
+    const float value_x2 = ImMax(bb.Min.x, bb.Max.x - arrow_size);
+    RenderNavHighlight(bb, id);
+    if (!(combo_flags & ImGuiComboFlags_NoPreview))
+        window->DrawList->AddRectFilled(bb.Min, ImVec2(value_x2, bb.Max.y), frame_col, style.FrameRounding, (combo_flags & ImGuiComboFlags_NoArrowButton) ? ImDrawFlags_RoundCornersAll : ImDrawFlags_RoundCornersLeft);
+    if (!(combo_flags & ImGuiComboFlags_NoArrowButton))
+    {
+        ImU32 bg_col = GetColorU32((popup_open || hovered) ? ImGuiCol_ButtonHovered : ImGuiCol_Button);
+        ImU32 text_col = GetColorU32(ImGuiCol_Text);
+        window->DrawList->AddRectFilled(ImVec2(value_x2, bb.Min.y), bb.Max, bg_col, style.FrameRounding, (w <= arrow_size) ? ImDrawFlags_RoundCornersAll : ImDrawFlags_RoundCornersRight);
+        if (value_x2 + arrow_size - style.FramePadding.x <= bb.Max.x)
+            RenderArrow(window->DrawList, ImVec2(value_x2 + style.FramePadding.y, bb.Min.y + style.FramePadding.y), text_col, ImGuiDir_Down, 1.0f);
+    }
+    RenderFrameBorder(bb.Min, bb.Max, style.FrameRounding);
+
+    // Custom preview
+    if (combo_flags & ImGuiComboFlags_CustomPreview)
+    {
+        g.ComboPreviewData.PreviewRect = ImRect(bb.Min.x, bb.Min.y, value_x2, bb.Max.y);
+        IM_ASSERT(buffer == NULL || buffer[0] == 0);
+        buffer = NULL;
+    }
+
+    // Render preview and label
+    if (buffer != NULL && !(combo_flags & ImGuiComboFlags_NoPreview))
+    {
+        if (g.LogEnabled)
+            LogSetNextTextDecoration("{", "}");
+        RenderTextClipped(bb.Min + style.FramePadding, ImVec2(value_x2, bb.Max.y), buffer, NULL, NULL);
+    }
+    if (label_size.x > 0)
+        RenderText(ImVec2(bb.Max.x + style.ItemInnerSpacing.x, bb.Min.y + style.FramePadding.y), label);
+
+    if (!popup_open)
+        return false;
+
+    g.NextWindowData.Flags = backup_next_window_data_flags;
+
+    ImGuiWindow* current_window = GetCurrentWindow();
+    ImVec4 color;
+
+    // Search up the parent window hierarchy to find the first non-transparent background color
+    do
+    {
+        color = GetStyleColorVec4(current_window->Flags & (ImGuiWindowFlags_Tooltip | ImGuiWindowFlags_Popup) ? ImGuiCol_PopupBg :
+            (current_window->Flags & ImGuiWindowFlags_ChildWindow) && !current_window->DockIsActive ? ImGuiCol_ChildBg :
+            ImGuiCol_WindowBg);
+        current_window = current_window->ParentWindow;
+    }
+    while (color.w == 0.0f && current_window);
+
+    // Default to window background color if the final color is still transparent
+    if (color.w == 0.0f)
+        color = GetStyleColorVec4(ImGuiCol_WindowBg);
+
+    // Match the background color of the window below
+    PushStyleColor(ImGuiCol_PopupBg, GetColorU32(color));
+
+    combo_flags |= ImGuiComboFlags_InputText;
+
+    bool combo_popup_open = BeginComboPopup(popup_id, ImRect(bb.Min.x, bb.Min.y - bb.GetHeight(), bb.Max.x, bb.Min.y), combo_flags);
+
+    PopStyleColor();
+
+    // Adjust the window to cover the input text and arrow since it will be re-rendered in the popup for IO interactions
+    if (combo_popup_open)
+    {
+        ImGuiWindow* popup_window = GetCurrentWindow();
+
+        static constexpr const char* input_text_widget_name = "##ComboInputText";
+        const ImGuiID input_id = popup_window->GetID(input_text_widget_name);
+
+        // Add a rect under the InputText to remove rounding on the right side (similar to traditional combo boxes with an arrow button)
+        popup_window->DrawList->AddRectFilled(bb.Min, ImVec2(value_x2, bb.Max.y), GetColorU32(ImGuiCol_FrameBg), style.FrameRounding, (combo_flags & ImGuiComboFlags_NoArrowButton) ? ImDrawFlags_RoundCornersAll : ImDrawFlags_RoundCornersLeft);
+
+        // Adjust the size of the input text to match what the standard combo preview size would be
+        SetNextItemWidth(w - arrow_size);
+
+        // Make sure the saved text state matches the incoming buffer since it could have changed from selecting a combo option
+        if (pressed)
+        {
+            if (ImGuiInputTextState *state = GetInputTextState(input_id))
+            {
+                size_t buffer_length = strlen(buffer);
+                state->CurLenA = buffer_length;
+                state->CurLenW = buffer_length;
+                state->TextA.resize(buffer_length + 1);
+                memcpy(state->TextA.Data, buffer, state->TextA.size());
+                state->Stb.cursor = buffer_length;
+                state->Stb.select_start = buffer_length;
+                state->Stb.select_end = buffer_length;
+                InputTextDeactivateHook(input_id);
+            }
+
+            // Force the input text to take keyboard focus
+            SetKeyboardFocusHere();
+        }
+
+        bool changed = InputText(input_text_widget_name, buffer, buffer_size, input_flags, callback, user_data);
+        if (buffer_changed != NULL)
+            *buffer_changed = changed;
+
+        ImGuiID item_id = GetItemID();
+        if (item_id == g.NavJustMovedToId)
+            ActivateItem(item_id);
+
+        // Re-render the arrow button
+        if (!(combo_flags & ImGuiComboFlags_NoArrowButton))
+        {
+            ImU32 bg_col = GetColorU32(ImGuiCol_ButtonHovered);
+            ImU32 text_col = GetColorU32(ImGuiCol_Text);
+            popup_window->DrawList->AddRectFilled(ImVec2(value_x2, bb.Min.y), bb.Max, bg_col, style.FrameRounding, (w <= arrow_size) ? ImDrawFlags_RoundCornersAll : ImDrawFlags_RoundCornersRight);
+            if (value_x2 + arrow_size - style.FramePadding.x <= bb.Max.x)
+                RenderArrow(popup_window->DrawList, ImVec2(value_x2 + style.FramePadding.y, bb.Min.y + style.FramePadding.y), text_col, ImGuiDir_Down, 1.0f);
+
+            if (IsMouseHoveringRect(ImVec2(value_x2, bb.Min.y), bb.Max) && IsMouseClicked(ImGuiMouseButton_Left))
+                CloseCurrentPopup();
+        }
+
+        // Move the window up by ItemSpacing.y to align it to the bottom of the Input Text rect
+        SetNextWindowPos(GetCursorScreenPos() - ImVec2(0.0f, g.Style.ItemSpacing.y));
+        PushStyleColor(ImGuiCol_ChildBg, GetColorU32(ImGuiCol_PopupBg));
+
+        const ImRect& size_constraint = g.NextWindowData.SizeConstraintRect;
+
+        SetNextWindowSizeConstraints(size_constraint.Min, size_constraint.Max - ImVec2(0.0f, bb.GetHeight()));
+
+        // Mimic the popup border size since the child window is supposed to replace a popup
+        PushStyleVar(ImGuiStyleVar_ChildBorderSize, g.Style.PopupBorderSize);
+
+        const char* child_name = "##ComboPopupChild";
+        ImGuiID child_id = popup_window->GetID(child_name);
+        const char* temp_child_name;
+        ImFormatStringToTempBuffer(&temp_child_name, NULL, "%s/%s_%08X", popup_window->Name, child_name, child_id);
+        ImGuiWindow* child_window = FindWindowByName(temp_child_name);
+
+        float child_height = g.Style.WindowPadding.y * 2.0f;
+        ImGuiWindowFlags flags = ImGuiWindowFlags_NavFlattened;
+
+        if (child_window)
+        {
+            if (child_window->ContentSize.y < size_constraint.GetHeight())
+                flags |= ImGuiWindowFlags_NoScrollbar;
+            child_height += ImMin(child_window->ContentSize.y, size_constraint.GetHeight());
+        }
+
+        if (BeginChildEx(child_name, child_id, ImVec2(0.0f, child_height), true, flags))
+            ImGui::SetKeyOwner(ImGuiKey_MouseLeft, ImGuiKeyOwner_None); // Remove key ownership for the mouse from the input text
+
+        PopStyleVar();
+        PopStyleColor();
+    }
+
+    return combo_popup_open;
+}
+
+void ImGui::EndComboInputText()
+{
+    EndChild();
+    EndCombo();
 }
 
 // Call directly after the BeginCombo/EndCombo block. The preview is designed to only host non-interactive elements
@@ -6558,7 +6771,7 @@ bool ImGui::Selectable(const char* label, bool selected, ImGuiSelectableFlags fl
     RenderTextClipped(text_min, text_max, label, NULL, &label_size, style.SelectableTextAlign, &bb);
 
     // Automatically close popups
-    if (pressed && (window->Flags & ImGuiWindowFlags_Popup) && !(flags & ImGuiSelectableFlags_DontClosePopups) && !(g.LastItemData.InFlags & ImGuiItemFlags_SelectableDontClosePopup))
+    if (pressed && ((window->Flags & ImGuiWindowFlags_Popup) || (window->IsExplicitChild && window->ParentWindow->Flags & ImGuiWindowFlags_Popup)) && !(flags & ImGuiSelectableFlags_DontClosePopups) && !(g.LastItemData.InFlags & ImGuiItemFlags_SelectableDontClosePopup))
         CloseCurrentPopup();
 
     if (disabled_item && !disabled_global)
