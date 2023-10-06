@@ -1834,7 +1834,7 @@ void ImGui::EndCombo()
     EndPopup();
 }
 
-bool ImGui::BeginComboInputText(const char* label, char* buffer, size_t buffer_size, bool* buffer_changed, ImGuiComboFlags combo_flags, ImGuiInputTextFlags input_flags, ImGuiInputTextCallback callback, void* user_data)
+bool ImGui::BeginComboInputText(const char* label, const char* preview_value, char* buffer, size_t buffer_size, bool* buffer_changed, ImGuiComboFlags combo_flags, ImGuiInputTextFlags input_flags, ImGuiInputTextCallback callback, void* user_data)
 {
     ImGuiContext& g = *GImGui;
     ImGuiWindow* window = GetCurrentWindow();
@@ -1846,11 +1846,11 @@ bool ImGui::BeginComboInputText(const char* label, char* buffer, size_t buffer_s
 
     const ImGuiStyle& style = g.Style;
     const ImGuiID id = window->GetID(label);
-    IM_ASSERT((combo_flags & (ImGuiComboFlags_NoArrowButton | ImGuiComboFlags_NoPreview)) != (ImGuiComboFlags_NoArrowButton | ImGuiComboFlags_NoPreview)); // Can't use both flags together
+    IM_ASSERT((combo_flags & ImGuiComboFlags_NoPreview) == 0); // This flag has no effect for this type of widget
 
     const float arrow_size = (combo_flags & ImGuiComboFlags_NoArrowButton) ? 0.0f : GetFrameHeight();
     const ImVec2 label_size = CalcTextSize(label, NULL, true);
-    const float w = (combo_flags & ImGuiComboFlags_NoPreview) ? arrow_size : CalcItemWidth();
+    const float w = CalcItemWidth();
     const ImRect bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w, label_size.y + style.FramePadding.y * 2.0f));
     const ImRect total_bb(bb.Min, bb.Max + ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 0.0f));
     ItemSize(total_bb, style.FramePadding.y);
@@ -1860,12 +1860,6 @@ bool ImGui::BeginComboInputText(const char* label, char* buffer, size_t buffer_s
     // Open on click
     bool hovered, held;
     bool pressed = ButtonBehavior(bb, id, &hovered, &held);
-
-    ImRect input_text_rect = ImRect(bb.Min, ImVec2(bb.Max.x - arrow_size, bb.Max.y));
-
-    // Mouse hovering input text section
-    if (hovered && IsMouseHoveringRect(input_text_rect.Min, input_text_rect.Max))
-        SetMouseCursor(ImGuiMouseCursor_TextInput);
 
     const ImGuiID popup_id = ImHashStr("##ComboPopup", 0, id);
     bool popup_open = IsPopupOpen(popup_id, ImGuiPopupFlags_None);
@@ -1879,8 +1873,7 @@ bool ImGui::BeginComboInputText(const char* label, char* buffer, size_t buffer_s
     const ImU32 frame_col = GetColorU32(hovered ? ImGuiCol_FrameBgHovered : ImGuiCol_FrameBg);
     const float value_x2 = ImMax(bb.Min.x, bb.Max.x - arrow_size);
     RenderNavHighlight(bb, id);
-    if (!(combo_flags & ImGuiComboFlags_NoPreview))
-        window->DrawList->AddRectFilled(bb.Min, ImVec2(value_x2, bb.Max.y), frame_col, style.FrameRounding, (combo_flags & ImGuiComboFlags_NoArrowButton) ? ImDrawFlags_RoundCornersAll : ImDrawFlags_RoundCornersLeft);
+    window->DrawList->AddRectFilled(bb.Min, ImVec2(value_x2, bb.Max.y), frame_col, style.FrameRounding, (combo_flags & ImGuiComboFlags_NoArrowButton) ? ImDrawFlags_RoundCornersAll : ImDrawFlags_RoundCornersLeft);
     if (!(combo_flags & ImGuiComboFlags_NoArrowButton))
     {
         ImU32 bg_col = GetColorU32((popup_open || hovered) ? ImGuiCol_ButtonHovered : ImGuiCol_Button);
@@ -1895,16 +1888,16 @@ bool ImGui::BeginComboInputText(const char* label, char* buffer, size_t buffer_s
     if (combo_flags & ImGuiComboFlags_CustomPreview)
     {
         g.ComboPreviewData.PreviewRect = ImRect(bb.Min.x, bb.Min.y, value_x2, bb.Max.y);
-        IM_ASSERT(buffer == NULL || buffer[0] == 0);
-        buffer = NULL;
+        IM_ASSERT(preview_value == NULL || preview_value[0] == 0);
+        preview_value = NULL;
     }
 
     // Render preview and label
-    if (buffer != NULL && !(combo_flags & ImGuiComboFlags_NoPreview))
+    if (preview_value != NULL)
     {
         if (g.LogEnabled)
             LogSetNextTextDecoration("{", "}");
-        RenderTextClipped(bb.Min + style.FramePadding, ImVec2(value_x2, bb.Max.y), buffer, NULL, NULL);
+        RenderTextClipped(bb.Min + style.FramePadding, ImVec2(value_x2, bb.Max.y), preview_value, NULL, NULL);
     }
     if (label_size.x > 0)
         RenderText(ImVec2(bb.Max.x + style.ItemInnerSpacing.x, bb.Min.y + style.FramePadding.y), label);
