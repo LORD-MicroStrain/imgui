@@ -1999,7 +1999,8 @@ bool ImGui::BeginComboInputText(const char* label, const char* preview_value, ch
         // Mimic the popup border size since the child window is supposed to replace a popup
         PushStyleVar(ImGuiStyleVar_ChildBorderSize, g.Style.PopupBorderSize);
 
-        const char* child_name = "##ComboPopupChild";
+        char child_name[32];
+        ImFormatString(child_name, IM_ARRAYSIZE(child_name), "##ComboPopupChild_%08X", id);
         ImGuiID child_id = popup_window->GetID(child_name);
         const char* temp_child_name;
         ImFormatStringToTempBuffer(&temp_child_name, NULL, "%s/%s_%08X", popup_window->Name, child_name, child_id);
