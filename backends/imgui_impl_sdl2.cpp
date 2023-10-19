@@ -878,11 +878,31 @@ static void ImGui_ImplSDL2_CreateWindow(ImGuiViewport* viewport)
         NativeChildWindow *child_window = new NativeChildWindow;
          
         void *parent_ptr = nullptr;
+        
+        SDL_Window* sdl_mouse_window = SDL_GetWindowFromID(bd->MouseWindowID);
 
 #ifdef __linux__
-        parent_ptr = main_viewport->PlatformHandle;
+        parent_ptr = sdl_mouse_window;
 #else
-        parent_ptr = main_viewport->PlatformHandleRaw;
+        if(sdl_mouse_window != nullptr)
+        {
+            SDL_SysWMinfo wmInfo;
+            SDL_VERSION(&wmInfo.version);
+            SDL_GetWindowWMInfo(sdl_mouse_window, &wmInfo);
+
+#if defined _WIN32            
+            parent_ptr = wmInfo.info.win.window;
+#endif
+
+#if defined __APPLE__
+            parent_ptr = wmInfo.info.cocoa.window;
+#endif
+        }
+        else
+        {
+            parent_ptr = main_viewport->PlatformHandleRaw;
+        }
+
 #endif
 
         if(child_window->create(parent_ptr, (int)(x_pos), (int)(y_pos), (int)viewport->Size.x, (int)viewport->Size.y))
