@@ -876,19 +876,25 @@ static void ImGui_ImplSDL2_CreateWindow(ImGuiViewport* viewport)
         float y_pos = viewport->Pos.y - main_viewport->Pos.y;
         
         NativeChildWindow *child_window = new NativeChildWindow;
-         
-        void *parent_ptr = nullptr;
-        
-        SDL_Window* sdl_mouse_window = SDL_GetWindowFromID(bd->MouseWindowID);
 
+        ImGuiViewport *parent_viewport = ImGui::FindViewportByID(viewport->ParentViewportId);
+
+        while (parent_viewport->Flags & ImGuiViewportFlags_NativeChild)
+            parent_viewport = ImGui::FindViewportByID(parent_viewport->ParentViewportId);
+
+        ImGui_ImplSDL2_ViewportData *parent_viewport_data = (ImGui_ImplSDL2_ViewportData *)parent_viewport->PlatformUserData;
+
+        void *parent_ptr = nullptr; 
+        SDL_Window *parent_window = parent_viewport_data->Window;
+        
 #ifdef __linux__
         parent_ptr = sdl_mouse_window;
 #else
-        if(sdl_mouse_window != nullptr)
+        if (parent_window != nullptr)
         {
             SDL_SysWMinfo wmInfo;
             SDL_VERSION(&wmInfo.version);
-            SDL_GetWindowWMInfo(sdl_mouse_window, &wmInfo);
+            SDL_GetWindowWMInfo(parent_window, &wmInfo);
 
 #if defined _WIN32            
             parent_ptr = wmInfo.info.win.window;
@@ -1023,24 +1029,26 @@ static ImVec2 ImGui_ImplSDL2_GetWindowPos(ImGuiViewport* viewport)
 static void ImGui_ImplSDL2_SetWindowPos(ImGuiViewport* viewport, ImVec2 pos)
 {
     ImGui_ImplSDL2_ViewportData* vd = (ImGui_ImplSDL2_ViewportData*)viewport->PlatformUserData;
-
+ 
     int pos_x = (int)pos.x, pos_y = (int)pos.y;
+
+    ImGuiViewport *parent_viewport = ImGui::FindViewportByID(viewport->ParentViewportId);
+
+    while (parent_viewport->Flags & ImGuiViewportFlags_NativeChild)
+        parent_viewport = ImGui::FindViewportByID(parent_viewport->ParentViewportId);
 
     //Microstrain edit (use child coordinates for child windows)
 #if defined(_WIN32)
     if(vd->ChildWindow != nullptr)
     {
-        ImGuiViewport* main_viewport = ImGui::GetMainViewport();
-
-        pos_x = (int)(viewport->Pos.x - main_viewport->Pos.x);
-        pos_y = (int)(viewport->Pos.y - main_viewport->Pos.y);
+        pos_x = (int)(viewport->Pos.x - parent_viewport->Pos.x);
+        pos_y = (int)(viewport->Pos.y - parent_viewport->Pos.y);
 
         SetWindowPos((HWND)vd->ChildWindow->get(), HWND_TOP, pos_x, pos_y, 0, 0, SWP_NOCOPYBITS | SWP_NOACTIVATE | SWP_NOSIZE);
     }
 #elif defined __linux__
     if(vd->ChildWindow != nullptr)
     {
-      ImGuiViewport* main_viewport = ImGui::GetMainViewport();
       pos_x = viewport->Pos.x - main_viewport->Pos.x;
       pos_y = viewport->Pos.y - main_viewport->Pos.y;
        
