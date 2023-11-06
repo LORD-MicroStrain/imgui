@@ -888,7 +888,7 @@ static void ImGui_ImplSDL2_CreateWindow(ImGuiViewport* viewport)
         SDL_Window *parent_window = parent_viewport_data->Window;
         
 #ifdef __linux__
-        parent_ptr = sdl_mouse_window;
+        parent_ptr = parent_window;
 #else
         if (parent_window != nullptr)
         {
@@ -1049,8 +1049,8 @@ static void ImGui_ImplSDL2_SetWindowPos(ImGuiViewport* viewport, ImVec2 pos)
 #elif defined __linux__
     if(vd->ChildWindow != nullptr)
     {
-      pos_x = viewport->Pos.x - main_viewport->Pos.x;
-      pos_y = viewport->Pos.y - main_viewport->Pos.y;
+      pos_x = viewport->Pos.x - parent_viewport->Pos.x;
+      pos_y = viewport->Pos.y - parent_viewport->Pos.y;
        
       if(vd->ChildWindow)
       {
