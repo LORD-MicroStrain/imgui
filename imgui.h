@@ -1721,11 +1721,11 @@ enum ImGuiCol_
     ImGuiCol_Button,
     ImGuiCol_ButtonHovered,
     ImGuiCol_ButtonActive,
-    ImGuiCol_ButtonText,
+    ImGuiCol_ButtonText,            // MicroStrain
     ImGuiCol_Header,                // Header* colors are used for CollapsingHeader, TreeNode, Selectable, MenuItem
     ImGuiCol_HeaderHovered,
     ImGuiCol_HeaderActive,
-    ImGuiCol_HeaderText,
+    ImGuiCol_HeaderText,            // MicroStrain
     ImGuiCol_Separator,
     ImGuiCol_SeparatorHovered,
     ImGuiCol_SeparatorActive,
@@ -1737,7 +1737,7 @@ enum ImGuiCol_
     ImGuiCol_TabActive,
     ImGuiCol_TabUnfocused,
     ImGuiCol_TabUnfocusedActive,
-    ImGuiCol_TabText,
+    ImGuiCol_TabText,               // MicroStrain
     ImGuiCol_DockingPreview,        // Preview overlay color when about to docking something
     ImGuiCol_DockingEmptyBg,        // Background color for empty node (e.g. CentralNode with no window docked into it)
     ImGuiCol_PlotLines,
@@ -1745,7 +1745,7 @@ enum ImGuiCol_
     ImGuiCol_PlotHistogram,
     ImGuiCol_PlotHistogramHovered,
     ImGuiCol_TableHeaderBg,         // Table header background
-    ImGuiCol_TableHeaderText,
+    ImGuiCol_TableHeaderText,       // MicroStrain
     ImGuiCol_TableBorderStrong,     // Table outer and header borders (prefer using Alpha=1.0 here)
     ImGuiCol_TableBorderLight,      // Table inner borders (prefer using Alpha=1.0 here)
     ImGuiCol_TableRowBg,            // Table row background (even rows)

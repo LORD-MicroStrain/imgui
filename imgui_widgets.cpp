@@ -784,7 +784,7 @@ bool ImGui::ArrowButtonEx(const char* str_id, ImGuiDir dir, ImVec2 size, ImGuiBu
 
     // Render
     const ImU32 bg_col = GetColorU32((held && hovered) ? ImGuiCol_ButtonActive : hovered ? ImGuiCol_ButtonHovered : ImGuiCol_Button);
-    const ImU32 text_col = GetColorU32(ImGuiCol_ButtonText);
+    const ImU32 text_col = GetColorU32(ImGuiCol_ButtonText);  // MicroStrain
     RenderNavHighlight(bb, id);
     RenderFrame(bb.Min, bb.Max, bg_col, true, g.Style.FrameRounding);
     RenderArrow(window->DrawList, bb.Min + ImVec2(ImMax(0.0f, (size.x - g.FontSize) * 0.5f), ImMax(0.0f, (size.y - g.FontSize) * 0.5f)), text_col, dir);
@@ -6541,7 +6541,7 @@ bool ImGui::TreeNodeBehavior(ImGuiID id, ImGuiTreeNodeFlags flags, const char* l
         g.LastItemData.StatusFlags |= ImGuiItemStatusFlags_ToggledSelection;
 
     // Render
-    const ImU32 text_col = GetColorU32(ImGuiCol_HeaderText);
+    const ImU32 text_col = GetColorU32(ImGuiCol_HeaderText);  // MicroStrain
     ImGuiNavHighlightFlags nav_highlight_flags = ImGuiNavHighlightFlags_TypeThin;
     if (display_frame)
     {
@@ -6581,7 +6581,7 @@ bool ImGui::TreeNodeBehavior(ImGuiID id, ImGuiTreeNodeFlags flags, const char* l
     if (span_all_columns)
         TablePopBackgroundChannel();
 
-    PushStyleColor(ImGuiCol_Text, text_col);
+    PushStyleColor(ImGuiCol_Text, text_col);  // MicroStrain
 
     // Label
     if (display_frame)
@@ -6589,7 +6589,7 @@ bool ImGui::TreeNodeBehavior(ImGuiID id, ImGuiTreeNodeFlags flags, const char* l
     else
         RenderText(text_pos, label, label_end, false);
 
-    PopStyleColor();
+    PopStyleColor();  // MicroStrain
 
     if (is_open && !(flags & ImGuiTreeNodeFlags_NoTreePushOnOpen))
         TreePushOverrideID(id);
@@ -6859,6 +6859,7 @@ bool ImGui::Selectable(const char* label, bool selected, ImGuiSelectableFlags fl
             PopColumnsBackground();
     }
 
+    // MicroStrain
     if(hovered || selected)
         ImGui::PushStyleColor(ImGuiCol_Text, GetColorU32(ImGuiCol_HeaderText));
     else if(disabled_item || disabled_global)
@@ -6866,6 +6867,7 @@ bool ImGui::Selectable(const char* label, bool selected, ImGuiSelectableFlags fl
 
     RenderTextClipped(text_min, text_max, label, NULL, &label_size, style.SelectableTextAlign, &bb);
 
+    // MicroStrain
     if(hovered || selected || disabled_item || disabled_global)
         ImGui::PopStyleColor();
 
@@ -8687,10 +8689,10 @@ static ImGuiTabItem* ImGui::TabBarScrollingButtons(ImGuiTabBar* tab_bar)
     //window->DrawList->AddRect(ImVec2(tab_bar->BarRect.Max.x - scrolling_buttons_width, tab_bar->BarRect.Min.y), ImVec2(tab_bar->BarRect.Max.x, tab_bar->BarRect.Max.y), IM_COL32(255,0,0,255));
 
     int select_dir = 0;
-    ImVec4 arrow_col = g.Style.Colors[ImGuiCol_TabText];
+    ImVec4 arrow_col = g.Style.Colors[ImGuiCol_TabText];  // MicroStrain
     arrow_col.w *= 0.5f;
 
-    PushStyleColor(ImGuiCol_TabText, arrow_col);
+    PushStyleColor(ImGuiCol_TabText, arrow_col);  // MicroStrain
     PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
     const float backup_repeat_delay = g.IO.KeyRepeatDelay;
     const float backup_repeat_rate = g.IO.KeyRepeatRate;
@@ -8747,9 +8749,9 @@ static ImGuiTabItem* ImGui::TabBarTabListPopupButton(ImGuiTabBar* tab_bar)
     window->DC.CursorPos = ImVec2(tab_bar->BarRect.Min.x - g.Style.FramePadding.y, tab_bar->BarRect.Min.y);
     tab_bar->BarRect.Min.x += tab_list_popup_button_width;
 
-    ImVec4 arrow_col = g.Style.Colors[ImGuiCol_TabText];
+    ImVec4 arrow_col = g.Style.Colors[ImGuiCol_TabText];  // MicroStrain
     arrow_col.w *= 0.5f;
-    PushStyleColor(ImGuiCol_TabText, arrow_col);
+    PushStyleColor(ImGuiCol_TabText, arrow_col);  // MicroStrain
     PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
     bool open = BeginCombo("##v", NULL, ImGuiComboFlags_NoPreview | ImGuiComboFlags_HeightLargest);
     PopStyleColor(2);
@@ -9260,7 +9262,7 @@ void ImGui::TabItemLabelAndCloseButton(ImDrawList* draw_list, const ImRect& bb, 
     else if (unsaved_marker_visible)
     {
         const ImRect bullet_bb(button_pos, button_pos + ImVec2(button_sz, button_sz));
-        RenderBullet(draw_list, bullet_bb.GetCenter(), GetColorU32(ImGuiCol_TabText));
+        RenderBullet(draw_list, bullet_bb.GetCenter(), GetColorU32(ImGuiCol_TabText));  // MicroStrain
     }
 
     // This is all rather complicated
@@ -9274,9 +9276,9 @@ void ImGui::TabItemLabelAndCloseButton(ImDrawList* draw_list, const ImRect& bb, 
         ellipsis_max_x = text_pixel_clip_bb.Max.x;
     }
 
-    PushStyleColor(ImGuiCol_Text, GetColorU32(ImGuiCol_TabText));
+    PushStyleColor(ImGuiCol_Text, GetColorU32(ImGuiCol_TabText));  // MicroStrain
     RenderTextEllipsis(draw_list, text_ellipsis_clip_bb.Min, text_ellipsis_clip_bb.Max, text_pixel_clip_bb.Max.x, ellipsis_max_x, label, NULL, &label_size);
-    PopStyleColor();
+    PopStyleColor();  // MicroStrain
 
 #if 0
     if (!is_contents_visible)
