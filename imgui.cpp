@@ -3313,9 +3313,11 @@ const char* ImGui::GetStyleColorName(ImGuiCol idx)
     case ImGuiCol_Button: return "Button";
     case ImGuiCol_ButtonHovered: return "ButtonHovered";
     case ImGuiCol_ButtonActive: return "ButtonActive";
+    case ImGuiCol_ButtonText: return "ButtonText";                      // MicroStrain Custom
     case ImGuiCol_Header: return "Header";
     case ImGuiCol_HeaderHovered: return "HeaderHovered";
     case ImGuiCol_HeaderActive: return "HeaderActive";
+    case ImGuiCol_HeaderText: return "HeaderText";                      // MicroStrain Custom
     case ImGuiCol_Separator: return "Separator";
     case ImGuiCol_SeparatorHovered: return "SeparatorHovered";
     case ImGuiCol_SeparatorActive: return "SeparatorActive";
@@ -3327,6 +3329,7 @@ const char* ImGui::GetStyleColorName(ImGuiCol idx)
     case ImGuiCol_TabActive: return "TabActive";
     case ImGuiCol_TabUnfocused: return "TabUnfocused";
     case ImGuiCol_TabUnfocusedActive: return "TabUnfocusedActive";
+    case ImGuiCol_TabText: return "TabText";                            // MicroStrain Custom
     case ImGuiCol_DockingPreview: return "DockingPreview";
     case ImGuiCol_DockingEmptyBg: return "DockingEmptyBg";
     case ImGuiCol_PlotLines: return "PlotLines";
@@ -3334,6 +3337,7 @@ const char* ImGui::GetStyleColorName(ImGuiCol idx)
     case ImGuiCol_PlotHistogram: return "PlotHistogram";
     case ImGuiCol_PlotHistogramHovered: return "PlotHistogramHovered";
     case ImGuiCol_TableHeaderBg: return "TableHeaderBg";
+    case ImGuiCol_TableHeaderText: return "TableHeaderText";            // MicroStrain Custom
     case ImGuiCol_TableBorderStrong: return "TableBorderStrong";
     case ImGuiCol_TableBorderLight: return "TableBorderLight";
     case ImGuiCol_TableRowBg: return "TableRowBg";
@@ -15031,7 +15035,7 @@ void ImGui::UpdatePlatformWindows()
         if (is_new_platform_window)
         {
             IMGUI_DEBUG_LOG_VIEWPORT("[viewport] Create Platform Window %08X '%s'\n", viewport->ID, viewport->Window ? viewport->Window->Name : "n/a");
-            
+
             //Microstrain Custom Edit
             if(viewport->Window->Flags & ImGuiWindowFlags_Native_Child_Window)
               viewport->Flags |= ImGuiViewportFlags_NativeChild;
