@@ -26,7 +26,6 @@ target_sources(
         ${CMAKE_CURRENT_SOURCE_DIR}/imgui_tables.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/imgui_widgets.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/misc/cpp/imgui_stdlib.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/microstrain/NativeChildWindow.cpp
 )
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_11)
