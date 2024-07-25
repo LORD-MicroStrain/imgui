@@ -3140,12 +3140,14 @@ void ImGui::TableHeader(const char* label)
             float y = label_pos.y;
             if (column->SortOrder > 0)
             {
-                PushStyleColor(ImGuiCol_TableHeaderText, GetColorU32(ImGuiCol_TableHeaderText, 0.70f));  // MicroStrain
+//                PushStyleColor(ImGuiCol_Text, GetColorU32(ImGuiCol_Text, 0.70f)); // MicroStrain (original)
+                PushStyleColor(ImGuiCol_TableHeaderText, GetColorU32(ImGuiCol_TableHeaderText, 0.70f)); // MicroStrain
                 RenderText(ImVec2(x + g.Style.ItemInnerSpacing.x, y), sort_order_suf);
                 PopStyleColor();
                 x += w_sort_text;
             }
-            RenderArrow(window->DrawList, ImVec2(x, y), GetColorU32(ImGuiCol_TableHeaderText), column->SortDirection == ImGuiSortDirection_Ascending ? ImGuiDir_Up : ImGuiDir_Down, ARROW_SCALE);  // MicroStrain
+//            RenderArrow(window->DrawList, ImVec2(x, y), GetColorU32(ImGuiCol_Text), column->SortDirection == ImGuiSortDirection_Ascending ? ImGuiDir_Up : ImGuiDir_Down, ARROW_SCALE); // MicroStrain (original)
+            RenderArrow(window->DrawList, ImVec2(x, y), GetColorU32(ImGuiCol_TableHeaderText), column->SortDirection == ImGuiSortDirection_Ascending ? ImGuiDir_Up : ImGuiDir_Down, ARROW_SCALE); // MicroStrain
         }
 
         // Handle clicking on column header to adjust Sort Order

@@ -410,7 +410,6 @@ bool ImGui_ImplSDL2_ProcessEvent(const SDL_Event* event)
             // - In some cases, when detaching a window from main viewport SDL may send SDL_WINDOWEVENT_ENTER one frame too late,
             //   causing SDL_WINDOWEVENT_LEAVE on previous frame to interrupt drag operation by clear mouse position. This is why
             //   we delay process the SDL_WINDOWEVENT_LEAVE events by one frame. See issue #5012 for details.
-           
             Uint8 window_event = event->window.event;
             if (window_event == SDL_WINDOWEVENT_ENTER)
             {
@@ -420,33 +419,20 @@ bool ImGui_ImplSDL2_ProcessEvent(const SDL_Event* event)
             if (window_event == SDL_WINDOWEVENT_LEAVE)
                 bd->MouseLastLeaveFrame = ImGui::GetFrameCount() + 1;
             if (window_event == SDL_WINDOWEVENT_FOCUS_GAINED)
-            {
                 io.AddFocusEvent(true);
-            }
             else if (window_event == SDL_WINDOWEVENT_FOCUS_LOST)
-            {
                 io.AddFocusEvent(false);
-            }
             if (window_event == SDL_WINDOWEVENT_CLOSE || window_event == SDL_WINDOWEVENT_MOVED || window_event == SDL_WINDOWEVENT_RESIZED)
-            {
                 if (ImGuiViewport* viewport = ImGui::FindViewportByPlatformHandle((void*)SDL_GetWindowFromID(event->window.windowID)))
                 {
                     if (window_event == SDL_WINDOWEVENT_CLOSE)
-                    {
                         viewport->PlatformRequestClose = true;
-                    }
                     if (window_event == SDL_WINDOWEVENT_MOVED)
-                    {
                         viewport->PlatformRequestMove = true;
-                    }
                     if (window_event == SDL_WINDOWEVENT_RESIZED)
-                    {
                         viewport->PlatformRequestResize = true;
-                    }
                     return true;
                 }
- 
-            }
             return true;
         }
         case SDL_CONTROLLERDEVICEADDED:
@@ -632,12 +618,14 @@ static void ImGui_ImplSDL2_UpdateMouseData()
 
     // We forward mouse input when hovered or captured (via SDL_MOUSEMOTION) or when focused (below)
 #if SDL_HAS_CAPTURE_AND_GLOBAL_MOUSE
+// MicroStrain start
 #if !defined(_WIN32) && defined(NDEBUG)
-    // SDL_CaptureMouse() let the OS know e.g. that our imgui drag outside the SDL window boundaries shouldn't e.g. trigger other operations outside
     // On linux, this can get the mouse stuck when a breakpoint is hit, so disable for debug builds.
     // See https://github.com/ocornut/imgui/issues/4197 and https://github.com/ocornut/imgui/issues/3650
+// MicroStrain end
+    // SDL_CaptureMouse() let the OS know e.g. that our imgui drag outside the SDL window boundaries shouldn't e.g. trigger other operations outside
     SDL_CaptureMouse((bd->MouseButtonsDown != 0) ? SDL_TRUE : SDL_FALSE);
-#endif
+#endif // MicroStrain
     SDL_Window* focused_window = SDL_GetKeyboardFocus();
     const bool is_app_focused = (focused_window && (bd->Window == focused_window || ImGui::FindViewportByPlatformHandle((void*)focused_window)));
 #else
@@ -923,6 +911,7 @@ struct ImGui_ImplSDL2_ViewportData
     Uint32          WindowID;
     bool            WindowOwned;
     SDL_GLContext   GLContext;
+
     ImGui_ImplSDL2_ViewportData() { Window = nullptr; WindowID = 0; WindowOwned = false; GLContext = nullptr; }
     ~ImGui_ImplSDL2_ViewportData() { IM_ASSERT(Window == nullptr && GLContext == nullptr); }
 };
@@ -959,9 +948,7 @@ static void ImGui_ImplSDL2_CreateWindow(ImGuiViewport* viewport)
 #if SDL_HAS_ALWAYS_ON_TOP
     sdl_flags |= (viewport->Flags & ImGuiViewportFlags_TopMost) ? SDL_WINDOW_ALWAYS_ON_TOP : 0;
 #endif
-
     vd->Window = SDL_CreateWindow("No Title Yet", (int)viewport->Pos.x, (int)viewport->Pos.y, (int)viewport->Size.x, (int)viewport->Size.y, sdl_flags);
-
     vd->WindowOwned = true;
     if (use_opengl)
     {
@@ -973,7 +960,6 @@ static void ImGui_ImplSDL2_CreateWindow(ImGuiViewport* viewport)
 
     viewport->PlatformHandle = (void*)vd->Window;
     viewport->PlatformHandleRaw = nullptr;
-
     SDL_SysWMinfo info;
     SDL_VERSION(&info.version);
     if (SDL_GetWindowWMInfo(vd->Window, &info))

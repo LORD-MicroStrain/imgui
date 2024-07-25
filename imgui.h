@@ -558,13 +558,15 @@ namespace ImGui
 
     // Widgets: Combo Box (Dropdown)
     // - The BeginCombo()/EndCombo() api allows you to manage your contents and selection state however you want it, by creating e.g. Selectable() items.
-    // - The BeginComboInputText()/EndComboInputText() api uses an input text object to allow for filtering dropdown items.
+    // - The BeginComboInputText()/EndComboInputText() api uses an input text object to allow for filtering dropdown items. // MicroStrain
     // - The old Combo() api are helpers over BeginCombo()/EndCombo() which are kept available for convenience purpose. This is analogous to how ListBox are created.
     IMGUI_API bool          BeginCombo(const char* label, const char* preview_value, ImGuiComboFlags flags = 0);
     IMGUI_API void          EndCombo(); // only call EndCombo() if BeginCombo() returns true!
+	// MicroStrain start
     // TODO: Rework to use ImGuiTextFilter instead of InputText
     IMGUI_API bool          BeginComboInputText(const char* label, const char* preview_value, char* buffer, size_t buffer_size, bool* buffer_changed = NULL, ImGuiComboFlags combo_flags = 0, ImGuiInputTextFlags input_flags = 0, ImGuiInputTextCallback callback = NULL, void* user_data = NULL);
     IMGUI_API void          EndComboInputText();
+	// MicroStrain end
     IMGUI_API bool          Combo(const char* label, int* current_item, const char* const items[], int items_count, int popup_max_height_in_items = -1);
     IMGUI_API bool          Combo(const char* label, int* current_item, const char* items_separated_by_zeros, int popup_max_height_in_items = -1);      // Separate items with \0 within a string, end item-list with \0\0. e.g. "One\0Two\0Three\0"
     IMGUI_API bool          Combo(const char* label, int* current_item, const char* (*getter)(void* user_data, int idx), void* user_data, int items_count, int popup_max_height_in_items = -1);
@@ -1212,8 +1214,8 @@ enum ImGuiComboFlags_
     ImGuiComboFlags_HeightLargest           = 1 << 4,   // As many fitting items as possible
     ImGuiComboFlags_NoArrowButton           = 1 << 5,   // Display on the preview box without the square arrow button
     ImGuiComboFlags_NoPreview               = 1 << 6,   // Display only a square arrow button
-    ImGuiComboFlags_InputText               = 1 << 7,   // Combo is using an input text instead of a preview box
-    ImGuiComboFlags_WidthFitPreview         = 1 << 8,   // Width dynamically calculated from preview contents
+    ImGuiComboFlags_WidthFitPreview         = 1 << 7,   // Width dynamically calculated from preview contents
+    ImGuiComboFlags_InputText               = 1 << 8,   // Combo is using an input text instead of a preview box // MicroStrain
     ImGuiComboFlags_HeightMask_             = ImGuiComboFlags_HeightSmall | ImGuiComboFlags_HeightRegular | ImGuiComboFlags_HeightLarge | ImGuiComboFlags_HeightLargest,
 };
 
@@ -1597,11 +1599,11 @@ enum ImGuiCol_
     ImGuiCol_Button,
     ImGuiCol_ButtonHovered,
     ImGuiCol_ButtonActive,
-    ImGuiCol_ButtonText,            // MicroStrain
+    ImGuiCol_ButtonText, // MicroStrain
     ImGuiCol_Header,                // Header* colors are used for CollapsingHeader, TreeNode, Selectable, MenuItem
     ImGuiCol_HeaderHovered,
     ImGuiCol_HeaderActive,
-    ImGuiCol_HeaderText,            // MicroStrain
+    ImGuiCol_HeaderText, // MicroStrain
     ImGuiCol_Separator,
     ImGuiCol_SeparatorHovered,
     ImGuiCol_SeparatorActive,
@@ -1613,7 +1615,7 @@ enum ImGuiCol_
     ImGuiCol_TabActive,
     ImGuiCol_TabUnfocused,
     ImGuiCol_TabUnfocusedActive,
-    ImGuiCol_TabText,               // MicroStrain
+    ImGuiCol_TabText, // MicroStrain
     ImGuiCol_DockingPreview,        // Preview overlay color when about to docking something
     ImGuiCol_DockingEmptyBg,        // Background color for empty node (e.g. CentralNode with no window docked into it)
     ImGuiCol_PlotLines,
@@ -1621,7 +1623,7 @@ enum ImGuiCol_
     ImGuiCol_PlotHistogram,
     ImGuiCol_PlotHistogramHovered,
     ImGuiCol_TableHeaderBg,         // Table header background
-    ImGuiCol_TableHeaderText,       // MicroStrain
+    ImGuiCol_TableHeaderText, // MicroStrain
     ImGuiCol_TableBorderStrong,     // Table outer and header borders (prefer using Alpha=1.0 here)
     ImGuiCol_TableBorderLight,      // Table inner borders (prefer using Alpha=1.0 here)
     ImGuiCol_TableRowBg,            // Table row background (even rows)

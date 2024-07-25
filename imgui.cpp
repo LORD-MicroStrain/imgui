@@ -3291,11 +3291,11 @@ const char* ImGui::GetStyleColorName(ImGuiCol idx)
     case ImGuiCol_Button: return "Button";
     case ImGuiCol_ButtonHovered: return "ButtonHovered";
     case ImGuiCol_ButtonActive: return "ButtonActive";
-    case ImGuiCol_ButtonText: return "ButtonText";                      // MicroStrain Custom
+    case ImGuiCol_ButtonText: return "ButtonText"; // MicroStrain
     case ImGuiCol_Header: return "Header";
     case ImGuiCol_HeaderHovered: return "HeaderHovered";
     case ImGuiCol_HeaderActive: return "HeaderActive";
-    case ImGuiCol_HeaderText: return "HeaderText";                      // MicroStrain Custom
+    case ImGuiCol_HeaderText: return "HeaderText"; // MicroStrain
     case ImGuiCol_Separator: return "Separator";
     case ImGuiCol_SeparatorHovered: return "SeparatorHovered";
     case ImGuiCol_SeparatorActive: return "SeparatorActive";
@@ -3307,7 +3307,7 @@ const char* ImGui::GetStyleColorName(ImGuiCol idx)
     case ImGuiCol_TabActive: return "TabActive";
     case ImGuiCol_TabUnfocused: return "TabUnfocused";
     case ImGuiCol_TabUnfocusedActive: return "TabUnfocusedActive";
-    case ImGuiCol_TabText: return "TabText";                            // MicroStrain Custom
+    case ImGuiCol_TabText: return "TabText"; // MicroStrain
     case ImGuiCol_DockingPreview: return "DockingPreview";
     case ImGuiCol_DockingEmptyBg: return "DockingEmptyBg";
     case ImGuiCol_PlotLines: return "PlotLines";
@@ -3315,7 +3315,7 @@ const char* ImGui::GetStyleColorName(ImGuiCol idx)
     case ImGuiCol_PlotHistogram: return "PlotHistogram";
     case ImGuiCol_PlotHistogramHovered: return "PlotHistogramHovered";
     case ImGuiCol_TableHeaderBg: return "TableHeaderBg";
-    case ImGuiCol_TableHeaderText: return "TableHeaderText";            // MicroStrain Custom
+    case ImGuiCol_TableHeaderText: return "TableHeaderText"; // MicroStrain
     case ImGuiCol_TableBorderStrong: return "TableBorderStrong";
     case ImGuiCol_TableBorderLight: return "TableBorderLight";
     case ImGuiCol_TableRowBg: return "TableRowBg";
@@ -6032,7 +6032,6 @@ static ImVec2 CalcWindowAutoFitSize(ImGuiWindow* window, const ImVec2& size_cont
     const float decoration_h_without_scrollbars = window->DecoOuterSizeY1 + window->DecoOuterSizeY2 - window->ScrollbarSizes.y;
     ImVec2 size_pad = window->WindowPadding * 2.0f;
     ImVec2 size_desired = size_contents + size_pad + ImVec2(decoration_w_without_scrollbars, decoration_h_without_scrollbars);
-
     if (window->Flags & ImGuiWindowFlags_Tooltip)
     {
         // Tooltip always resize
@@ -7142,7 +7141,7 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
 
         // Late create viewport if we don't fit within our current host viewport.
         if (window->ViewportAllowPlatformMonitorExtend >= 0 && !window->ViewportOwned && !(window->Viewport->Flags & ImGuiViewportFlags_IsMinimized))
-            if ((window->WindowClass.ViewportFlagsOverrideSet & ImGuiViewportFlags_NoAutoMerge) || !window->Viewport->GetMainRect().Contains(window->Rect()))
+            if (!window->Viewport->GetMainRect().Contains(window->Rect()))
             {
                 // This is based on the assumption that the DPI will be known ahead (same as the DPI of the selection done in UpdateSelectWindowViewport)
                 //ImGuiViewport* old_viewport = window->Viewport;
