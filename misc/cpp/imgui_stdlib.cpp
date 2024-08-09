@@ -83,7 +83,7 @@ bool ImGui::InputTextWithHint(const char* label, const char* hint, std::string* 
 // MicroStrain start
 void ImGui::TextUnformatted(std::string_view text)
 {
-	ImGui::TextUnformatted(text.data(), text.data() + text.size());
+    ImGui::TextUnformatted(text.data(), text.data() + text.size());
 }
 // MicroStrain end
 

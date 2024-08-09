@@ -562,11 +562,11 @@ namespace ImGui
     // - The old Combo() api are helpers over BeginCombo()/EndCombo() which are kept available for convenience purpose. This is analogous to how ListBox are created.
     IMGUI_API bool          BeginCombo(const char* label, const char* preview_value, ImGuiComboFlags flags = 0);
     IMGUI_API void          EndCombo(); // only call EndCombo() if BeginCombo() returns true!
-	// MicroStrain start
+    // MicroStrain start
     // TODO: Rework to use ImGuiTextFilter instead of InputText
     IMGUI_API bool          BeginComboInputText(const char* label, const char* preview_value, char* buffer, size_t buffer_size, bool* buffer_changed = NULL, ImGuiComboFlags combo_flags = 0, ImGuiInputTextFlags input_flags = 0, ImGuiInputTextCallback callback = NULL, void* user_data = NULL);
     IMGUI_API void          EndComboInputText();
-	// MicroStrain end
+    // MicroStrain end
     IMGUI_API bool          Combo(const char* label, int* current_item, const char* const items[], int items_count, int popup_max_height_in_items = -1);
     IMGUI_API bool          Combo(const char* label, int* current_item, const char* items_separated_by_zeros, int popup_max_height_in_items = -1);      // Separate items with \0 within a string, end item-list with \0\0. e.g. "One\0Two\0Three\0"
     IMGUI_API bool          Combo(const char* label, int* current_item, const char* (*getter)(void* user_data, int idx), void* user_data, int items_count, int popup_max_height_in_items = -1);

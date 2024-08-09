@@ -1792,10 +1792,10 @@ bool ImGui::BeginComboPopup(ImGuiID popup_id, const ImRect& bb, ImGuiComboFlags 
             constraint_min.x = w;
         if ((g.NextWindowData.Flags & ImGuiNextWindowDataFlags_HasSize) == 0 || g.NextWindowData.SizeVal.y <= 0.0f)
             constraint_max.y = CalcMaxPopupHeightFromItemCount(popup_max_height_in_items);
-		// MicroStrain start
+        // MicroStrain start
         if (flags & ImGuiComboFlags_InputText)
             constraint_max.y += bb.GetHeight();
-		// MicroStrain end
+        // MicroStrain end
         SetNextWindowSizeConstraints(constraint_min, constraint_max);
     }
 
@@ -1820,14 +1820,14 @@ bool ImGui::BeginComboPopup(ImGuiID popup_id, const ImRect& bb, ImGuiComboFlags 
     // We don't use BeginPopupEx() solely because we have a custom name string, which we could make an argument to BeginPopupEx()
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_Popup | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoMove;
     // MicroStrain start
-	if (flags & ImGuiComboFlags_InputText)
+    if (flags & ImGuiComboFlags_InputText)
     {
         PushStyleVar(ImGuiStyleVar_PopupBorderSize, 0.0f);             // The child window only needs a border
         PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f)); // Remove padding since the child window will replace the full popup
     }
     else
         PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(g.Style.FramePadding.x, g.Style.WindowPadding.y)); // Horizontally align ourselves with the framed text
-	// MicroStrain end
+    // MicroStrain end
 //    PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(g.Style.FramePadding.x, g.Style.WindowPadding.y)); // Horizontally align ourselves with the framed text // MicroStrain (original)
     bool ret = Begin(name, NULL, window_flags);
 //    PopStyleVar(); // MicroStrain (original)
@@ -6892,14 +6892,14 @@ bool ImGui::Selectable(const char* label, bool selected, ImGuiSelectableFlags fl
         ImGui::PushStyleColor(ImGuiCol_Text, GetColorU32(ImGuiCol_HeaderText));
     else if (disabled_item || disabled_global)
         ImGui::PushStyleColor(ImGuiCol_Text, GetColorU32(ImGuiCol_TextDisabled));
-	// MicroStrain end
+    // MicroStrain end
 
     RenderTextClipped(text_min, text_max, label, NULL, &label_size, style.SelectableTextAlign, &bb);
 
     // MicroStrain start
     if (hovered || selected || disabled_item || disabled_global)
         ImGui::PopStyleColor();
-	// MicroStrain end
+    // MicroStrain end
 
     // Automatically close popups
 //    if (pressed && (window->Flags & ImGuiWindowFlags_Popup) && !(flags & ImGuiSelectableFlags_DontClosePopups) && !(g.LastItemData.InFlags & ImGuiItemFlags_SelectableDontClosePopup)) // MicroStrain (original)
