@@ -1968,7 +1968,7 @@ bool ImGui::BeginComboPopup(ImGuiID popup_id, const ImRect& bb, ImGuiComboFlags 
     else
         PushStyleVarX(ImGuiStyleVar_WindowPadding, g.Style.FramePadding.x); // Horizontally align ourselves with the framed text
     // MicroStrain end
-    PushStyleVarX(ImGuiStyleVar_WindowPadding, g.Style.FramePadding.x); // Horizontally align ourselves with the framed text // MicroStrain (original)
+//    PushStyleVarX(ImGuiStyleVar_WindowPadding, g.Style.FramePadding.x); // Horizontally align ourselves with the framed text // MicroStrain (original)
     bool ret = Begin(name, NULL, window_flags);
 //    PopStyleVar(); // MicroStrain (original)
     PopStyleVar(flags & ImGuiComboFlags_InputText ? 2 : 1); // MicroStrain
@@ -2107,17 +2107,7 @@ bool ImGui::BeginComboInputText(const char* label, const char* preview_value, ch
         if (pressed)
         {
             if (ImGuiInputTextState *state = GetInputTextState(input_id))
-            {
-                size_t buffer_length = strlen(buffer);
-                state->CurLenA = buffer_length;
-                state->CurLenW = buffer_length;
-                state->TextA.resize(buffer_length + 1);
-                memcpy(state->TextA.Data, buffer, state->TextA.size());
-                state->Stb.cursor = buffer_length;
-                state->Stb.select_start = buffer_length;
-                state->Stb.select_end = buffer_length;
-                InputTextDeactivateHook(input_id);
-            }
+                state->ReloadUserBufAndMoveToEnd();
 
             // Force the input text to take keyboard focus
             SetKeyboardFocusHere();
@@ -2173,7 +2163,7 @@ bool ImGui::BeginComboInputText(const char* label, const char* preview_value, ch
         }
 
         if (BeginChildEx(child_name, child_id, ImVec2(0.0f, child_height), true, flags))
-            ImGui::SetKeyOwner(ImGuiKey_MouseLeft, ImGuiKeyOwner_None); // Remove key ownership for the mouse from the input text
+            ImGui::SetKeyOwner(ImGuiKey_MouseLeft, ImGuiKeyOwner_NoOwner); // Remove key ownership for the mouse from the input text
 
         PopStyleVar();
         PopStyleColor();
@@ -6951,10 +6941,10 @@ bool ImGui::TreeNodeBehavior(ImGuiID id, ImGuiTreeNodeFlags flags, const char* l
             RenderTextClipped(text_pos, frame_bb.Max, label, label_end, &label_size);
         else
             RenderText(text_pos, label, label_end, false);
-        
+
         PopStyleColor(); // MicroStrain
     }
-    
+
     if (store_tree_node_stack_data && is_open)
         TreeNodeStoreStackData(flags); // Call before TreePushOverrideID()
     if (is_open && !(flags & ImGuiTreeNodeFlags_NoTreePushOnOpen))
@@ -7286,7 +7276,7 @@ bool ImGui::Selectable(const char* label, bool selected, ImGuiSelectableFlags fl
 
     // Automatically close popups
 //    if (pressed && (window->Flags & ImGuiWindowFlags_Popup) && !(flags & ImGuiSelectableFlags_NoAutoClosePopups) && (g.LastItemData.ItemFlags & ImGuiItemFlags_AutoClosePopups)) // MicroStrain (original)
-    if (pressed && (window->Flags & ImGuiWindowFlags_Popup) || (window->IsExplicitChild && window->ParentWindow->Flags & ImGuiWindowFlags_Popup)) && !(flags & ImGuiSelectableFlags_NoAutoClosePopups) && (g.LastItemData.ItemFlags & ImGuiItemFlags_AutoClosePopups)) // MicroStrain
+    if (pressed && ((window->Flags & ImGuiWindowFlags_Popup) || (window->IsExplicitChild && window->ParentWindow->Flags & ImGuiWindowFlags_Popup)) && !(flags & ImGuiSelectableFlags_NoAutoClosePopups) && (g.LastItemData.ItemFlags & ImGuiItemFlags_AutoClosePopups)) // MicroStrain
         CloseCurrentPopup();
 
     if (disabled_item && !disabled_global)
