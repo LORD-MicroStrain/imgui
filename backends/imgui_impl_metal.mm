@@ -3,7 +3,7 @@
 
 // Implemented features:
 //  [X] Renderer: User texture binding. Use 'MTLTexture' as ImTextureID. Read the FAQ about ImTextureID!
-//  [X] Renderer: Large meshes support (64k+ vertices) with 16-bit indices.
+//  [X] Renderer: Large meshes support (64k+ vertices) even with 16-bit indices (ImGuiBackendFlags_RendererHasVtxOffset).
 //  [X] Renderer: Multi-viewport support (multiple windows). Enable with 'io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable'.
 
 // You can use unmodified imgui_impl_* files in your project. See examples/ folder for examples of using this.
@@ -39,13 +39,6 @@
 #include "imgui_impl_metal.h"
 #import <time.h>
 #import <Metal/Metal.h>
-
-#if defined(__clang__)
-#if __has_warning("-Wunknown-warning-option")
-#pragma clang diagnostic ignored "-Wunknown-warning-option"         // warning: unknown warning group 'xxx'
-#endif
-#pragma clang diagnostic ignored "-Wnontrivial-memaccess"           // warning: first argument in call to 'memset' is a pointer to non-trivially copyable type
-#endif
 
 // Forward Declarations
 static void ImGui_ImplMetal_InitMultiViewportSupport();
@@ -91,7 +84,7 @@ struct ImGui_ImplMetal_Data
 {
     MetalContext*               SharedMetalContext;
 
-    ImGui_ImplMetal_Data()      { memset(this, 0, sizeof(*this)); }
+    ImGui_ImplMetal_Data()      { memset((void*)this, 0, sizeof(*this)); }
 };
 
 static ImGui_ImplMetal_Data*    ImGui_ImplMetal_GetBackendData()    { return ImGui::GetCurrentContext() ? (ImGui_ImplMetal_Data*)ImGui::GetIO().BackendRendererUserData : nullptr; }
