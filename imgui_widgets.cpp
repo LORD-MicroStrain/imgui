@@ -10087,9 +10087,9 @@ static ImGuiTabItem* ImGui::TabBarScrollingButtons(ImGuiTabBar* tab_bar)
     ImVec4 arrow_col = g.Style.Colors[ImGuiCol_TabText]; // MicroStrain
     arrow_col.w *= 0.5f;
 
-//    PushStyleColor(ImGuiCol_Text, arrow_col); // MicroStrain (original)
-    PushStyleColor(ImGuiCol_TabText, arrow_col); // MicroStrain
-    PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+//    PushStyleColor(ImGuiCol_Text, arrow_col);            // MicroStrain (original)
+    PushStyleColor(ImGuiCol_TabText, arrow_col);           // MicroStrain
+//    PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0)); // MicroStrain (original)
     PushItemFlag(ImGuiItemFlags_ButtonRepeat, true);
     const float backup_repeat_delay = g.IO.KeyRepeatDelay;
     const float backup_repeat_rate = g.IO.KeyRepeatRate;
@@ -10103,7 +10103,8 @@ static ImGuiTabItem* ImGui::TabBarScrollingButtons(ImGuiTabBar* tab_bar)
     if (ArrowButtonEx("##>", ImGuiDir_Right, arrow_button_size, ImGuiButtonFlags_PressedOnClick))
         select_dir = +1;
     PopItemFlag();
-    PopStyleColor(2);
+    // PopStyleColor(2); // MicroStrain (original)
+    PopStyleColor();     // MicroStrain
     g.IO.KeyRepeatRate = backup_repeat_rate;
     g.IO.KeyRepeatDelay = backup_repeat_delay;
 
