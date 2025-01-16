@@ -8,6 +8,7 @@
 //   https://github.com/ocornut/imgui/wiki/Useful-Extensions#cness
 
 #include "imgui.h"
+#ifndef IMGUI_DISABLE
 #include "imgui_stdlib.h"
 
 // Clang warnings with -Weverything
@@ -90,3 +91,5 @@ void ImGui::TextUnformatted(std::string_view text)
 #if defined(__clang__)
 #pragma clang diagnostic pop
 #endif
+
+#endif // #ifndef IMGUI_DISABLE
