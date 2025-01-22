@@ -2033,7 +2033,7 @@ bool ImGui::BeginComboInputText(const char* label, const char* preview_value, ch
     // Render shape
     const ImU32 frame_col = GetColorU32(hovered ? ImGuiCol_FrameBgHovered : ImGuiCol_FrameBg);
     const float value_x2 = ImMax(bb.Min.x, bb.Max.x - arrow_size);
-    RenderNavHighlight(bb, id);
+    RenderNavCursor(bb, id);
     window->DrawList->AddRectFilled(bb.Min, ImVec2(value_x2, bb.Max.y), frame_col, style.FrameRounding, (combo_flags & ImGuiComboFlags_NoArrowButton) ? ImDrawFlags_RoundCornersAll : ImDrawFlags_RoundCornersLeft);
     if (!(combo_flags & ImGuiComboFlags_NoArrowButton))
     {
@@ -2158,17 +2158,18 @@ bool ImGui::BeginComboInputText(const char* label, const char* preview_value, ch
         ImGuiWindow* child_window = FindWindowByName(temp_child_name);
 
         float child_height = g.Style.WindowPadding.y * 2.0f;
-        ImGuiWindowFlags flags = ImGuiWindowFlags_NavFlattened;
+        const ImGuiChildFlags child_flags = ImGuiChildFlags_Borders | ImGuiChildFlags_NavFlattened;
+        ImGuiWindowFlags window_flags = ImGuiWindowFlags_None;
 
         if (child_window)
         {
             if (child_window->ContentSize.y < size_constraint.GetHeight())
-                flags |= ImGuiWindowFlags_NoScrollbar;
+                window_flags |= ImGuiWindowFlags_NoScrollbar;
             child_height += ImMin(child_window->ContentSize.y, size_constraint.GetHeight());
         }
 
-        if (BeginChildEx(child_name, child_id, ImVec2(0.0f, child_height), true, flags))
-            ImGui::SetKeyOwner(ImGuiKey_MouseLeft, ImGuiKeyOwner_NoOwner); // Remove key ownership for the mouse from the input text
+        if (BeginChildEx(child_name, child_id, ImVec2(0.0f, child_height), child_flags, window_flags))
+            SetKeyOwner(ImGuiKey_MouseLeft, ImGuiKeyOwner_NoOwner); // Remove key ownership for the mouse from the input text
 
         PopStyleVar();
         PopStyleColor();
